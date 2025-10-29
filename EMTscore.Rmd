@@ -67,7 +67,7 @@ SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, 'EM_signature.gmt', cores
 
 # Prepare Data for Plotting
 ```{r}
-data_for_plot <- plot_data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
 ```
 
 # E score vs M score Plot
@@ -91,7 +91,7 @@ gene_set <- list(Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName)
 write_gmt(gene_set, "M_signature.gmt")
 
 nnPCA_Mscore <- Execute_nnPCA(geneExp, "M_signature.gmt", dimension=2, score_names=c('M1_score','M2_score'))
-data_for_plot <- plot_data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
 
 plot2 <- Execute_M_dimension_plot(
 data_for_plot,
@@ -119,7 +119,8 @@ combined_plot
 # Heatmap
 ```{r}
 # Example heatmap
-plot_heatmap_function(t(geneExp), geneList_M)
+
+plot_heatmap_function(t(geneExp), Panchy_et_al_M_signature)
 
 ```
 
@@ -158,24 +159,28 @@ p_JASMINE
 
 
 ```{r}
-SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_09_24/EMTscore/vignettes/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
+#SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_10_29/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
+data(SCSE_Result_EMT)
+data(SCSE_Result_multiple)
 result <- correlate_sample_scores(score_mat1 = SCSE_Result_multiple, score_mat2 = SCSE_Result_EMT, method = "spearman")
 head(result)
 ```
 
 
 ```{r}
-#signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
-scores <- compute_Signature_score(expr_mat = geneExp, signature_file = "/home/hwen6/project/EMTscore/2025_09_24/EMTscore/vignettes/stemsig.tsv", row_name = "stemness_score")
+signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
+scores <- compute_Signature_score(geneExp, signature_file , row_name = "stemness_score")
 head(scores)
 ```
 ```{r}
-#signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
-scores <- compute_Signature_score(expr_mat = geneExp, signature_file = "/home/hwen6/project/EMTscore/2025_09_24/EMTscore/vignettes/cellular_senescence_sig.tsv", row_name = "senescence_score")
+signature_file <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
+scores <- compute_Signature_score(geneExp, signature_file, row_name = "senescence_score")
 head(scores)
 ```
 
 ```{r}
+
+library(mclust) 
 cl1 <- Mclust(nnPCA_Result_multiple)$classification
 
 library(RColorBrewer)

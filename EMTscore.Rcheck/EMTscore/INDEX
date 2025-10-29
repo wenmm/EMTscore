@@ -1,0 +1,39 @@
+Arrange_plots           Arrange multiple ggplot objects with subtitles
+                        and common legend
+Execute_AUCell          Execute AUCell Scoring from GMT File
+Execute_AUCell_parallel
+                        Compute AUCell Scores for Multiple Gene Sets
+Execute_E_M_plot        Plot E vs M scores
+Execute_JAS             Execute JASMINE Scoring from GMT File
+Execute_JASMINE_parallel
+                        Compute JASMINE Scores for Multiple Gene Sets
+                        in Parallel
+Execute_M_dimension_plot
+                        Plot M dimension scores
+Execute_SCSE            Execute SCSE Scoring from GMT File
+Execute_SCSE_parallel   Compute SCSE Scores for Multiple Gene Sets
+Execute_nnPCA           Execute Non-Negative Sparse PCA (nnPCA) Scoring
+Execute_nnPCA_parallel
+                        Compute nnPCA Scores for Multiple Gene Sets in
+                        Parallel
+Execute_ssGSEA_parallel
+                        Compute ssGSEA Scores for Multiple Gene Sets in
+                        Parallel
+Execute_ssGSVA          Execute ssGSVA Scoring from GMT File
+add_EMT_score           Add EMT Scores to Seurat Objects
+add_EMT_score_Bulk      Compute EMT scores for one or multiple bulk
+                        expression matrices
+compute_Signature_score
+                        Compute Signature Score from Bulk Matrix or
+                        Seurat Object
+correlate_sample_scores
+                        Calculate correlations between pathway or
+                        signature scores across samples
+data_prepare            Prepare data for plotting
+plot_EMT_from_objects   Plot EMT Scores Along Pseudotime from Seurat
+                        Objects
+plot_heatmap_function   present result of heat map of genes that
+                        contribute to M score of dimension 1 and
+                        disension 2
+read_gmt                Read GMT File and Extract Genes
+write_gmt               Write Gene Sets to a GMT File

@@ -1,0 +1,4 @@
+name	user	system	elapsed
+Execute_AUCell	 0.283	 0.115	25.050	
+Execute_AUCell_parallel	 8.886	 2.221	16.993	
+Execute_JAS	 1.131	 0.103	25.009	

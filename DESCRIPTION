@@ -38,7 +38,8 @@ Imports:
     monocle,
     patchwork,
     slingshot,
-    velocyto.R
+    velocyto.R,
+    mclust
 Suggests:
     testthat,
     knitr,

@@ -9,9 +9,8 @@
 #' @param row_name Character string. The name to assign to the resulting score column.
 #'
 #' @return A numeric matrix (for bulk input) or a Seurat object with a new metadata column (for Seurat input).
-#' @examples
-#' 
-#' url <- https://zenodo.org/records/17438655/files/geneExp.rda"
+#' @examples 
+#' url <- "https://zenodo.org/records/17438655/files/geneExp.rda"
 #' destfile <- tempfile(fileext = ".rda")
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)

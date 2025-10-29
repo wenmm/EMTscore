@@ -21,7 +21,7 @@
 Execute_ssGSVA <- function(exprMatrix,Genesets,score_names){
 geneslist = unlist(read_gmt(Genesets)$gene)
 gsva_geneSets <- GSEABase::GeneSetCollection(
-  GSEABase::GeneSet(geneslist, setName = pathwayName)
+  GSEABase::GeneSet(geneslist, setName = score_names)
 )
 gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
 Result = gsva(gsvaPar, verbose=FALSE)      ### GSVA Function calling specifying ssGSEA as a method

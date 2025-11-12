@@ -1,0 +1,232 @@
+---
+title: "EMTscore Analysis and Plots"
+author: "haimei wen"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{EMT Score Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include=FALSE}
+# Load required libraries
+library(nsprcomp)
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(curl)
+library(ggpubr)
+library(pheatmap)
+library(grid)
+library(circlize)
+library(paletteer)
+library(ggthemes)
+library(ComplexHeatmap)
+library(EMTscore)
+
+# Optional: set global chunk options
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+# Load cell annotation
+
+```{r}
+data(cell_annotation_file)
+```
+
+# Download gene expression data
+
+```{r}
+url <- "https://zenodo.org/records/17353682/files/geneExp.rda"
+destfile <- tempfile(fileext = ".rda")
+download.file(url, destfile, mode = "wb")
+load(destfile)
+```
+
+# Load gene signature data
+
+```{r}
+data("Panchy_et_al_E_signature", package = "EMTscore")
+data("Panchy_et_al_M_signature", package = "EMTscore")
+```
+
+# Prepare gene sets and save as GMT
+
+```{r}
+gene_sets <- list(
+Panchy_et_al_E_signature = Panchy_et_al_E_signature$GeneName,
+Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName
+)
+write_gmt(gene_sets, "EM_signature.gmt")
+```
+
+# Compute scores using multiple methods
+```{r}
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, 'EM_signature.gmt', dimension = 1, cores = 10)
+AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, 'EM_signature.gmt', cores = 10)
+ssGSEA_Result_multiple <- Execute_ssGSEA_parallel(geneExp, 'EM_signature.gmt', cores = 10)
+JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, 'EM_signature.gmt', cores = 10)
+SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, 'EM_signature.gmt', cores = 10)
+```
+
+# Prepare Data for Plotting
+```{r}
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
+```
+
+# E score vs M score Plot
+```{r}
+plot1 <- Execute_E_M_plot(
+data_for_plot,
+E_colname = "Panchy_et_al_E_signature",
+M_colname = "Panchy_et_al_M_signature",
+celltype_colname = "celltype_annotation",
+colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+"#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+)
+plot1
+```
+
+# dimension 1 M score vs dimension 2 M score Plot
+```{r}
+# Prepare M gene set and compute nnPCA
+
+gene_set <- list(Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName)
+write_gmt(gene_set, "M_signature.gmt")
+
+nnPCA_Mscore <- Execute_nnPCA(geneExp, "M_signature.gmt", dimension=2, score_names=c('M1_score','M2_score'))
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
+
+plot2 <- Execute_M_dimension_plot(
+data_for_plot,
+M1_colname = "M1_score",
+M2_colname = "M2_score",
+celltype_colname = "celltype_annotation",
+colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+"#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+)
+plot2
+```
+
+# Combined Plot
+```{r}
+combined_plot <- Arrange_plots(
+plots_list = list(plot1, plot2),
+ncol_per_row = 2,
+subtitles = c("E vs M", "M1 vs M2"),
+fig_title = "Panchy_et_al"
+)
+combined_plot
+```
+
+
+# Heatmap
+```{r}
+# Example heatmap
+
+plot_heatmap_function(t(geneExp), Panchy_et_al_M_signature)
+
+```
+
+# single cell data analysis
+```{r}
+setwd("/home/hwen6/project/EMT/data/GSE147405Cook")
+files <- c("A549_TGFB1.rds", "A549_TNF.rds", "A549_EGF.rds")
+gmt <- "/home/hwen6/project/EMTscore/multiple_genesets/HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt"
+
+ 
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "AUCell",nnPCA_dim = 1)
+p_AUCell <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_AUCell
+
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "SCSE")
+p_SCSE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_SCSE
+
+#seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
+#p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_ssGSEA
+
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "Seurat")
+p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_Seurat
+
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA")
+p_nnPCA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_nnPCA
+
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "JASMINE")
+p_JASMINE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_JASMINE
+```
+
+
+
+```{r}
+SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_10_29/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
+data(SCSE_Result_EMT)
+#data(SCSE_Result_multiple)
+result <- correlate_sample_scores(score_mat1 = SCSE_Result_multiple, score_mat2 = SCSE_Result_EMT, method = "spearman")
+head(result)
+```
+
+
+```{r}
+signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
+scores <- compute_Signature_score(geneExp, signature_file , score_name = "stemness_score")
+head(scores)
+```
+```{r}
+signature_file <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
+scores <- compute_Signature_score(geneExp, signature_file, score_name = "senescence_score")
+head(scores)
+```
+
+```{r}
+
+library(mclust) 
+cl1 <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", PC_name = c("Escore", "Mscore"))
+
+library(RColorBrewer)
+
+plot(nnPCA_Result_multiple, col = brewer.pal(9,"Set1")[as.factor(cl1)], pch=16, asp = 1)
+
+cl2 <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 3,PC_name = c("Escore", "Mscore"))
+
+plot(nnPCA_Result_multiple, col = brewer.pal(9,"Set1")[as.factor(cl2)], pch=16, asp = 1)
+
+
+cl1 <- data.frame(cl1)
+
+cl2 <- data.frame(cl2)
+
+library(ggplot2)
+library(ggalluvial)
+library(dplyr)
+
+df_kmeans <- data.frame(cell = rownames(cl2),
+                        Kmeans = as.character(unlist(cl2$cl2)))
+df_true <- data.frame(cell = cell_annotation_file$name,
+                      TrueLabel = as.character(unlist(cell_annotation_file$celltype_annotation)))
+
+df_merge <- inner_join(df_kmeans, df_true, by = "cell")
+df_count <- df_merge %>%
+  group_by(Kmeans, TrueLabel) %>%
+  summarise(Freq = n(), .groups = "drop")
+
+ggplot(df_count, aes(axis1 = Kmeans, axis2 = TrueLabel, y = Freq)) +
+  geom_alluvium(aes(fill = Kmeans), width = 1/12) +
+  geom_stratum(width = 1/8, fill = "grey90", color = "black") +
+  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("Kmeans", "TrueLabel"), expand = c(.1, .1)) +
+  theme_minimal(base_size = 14) +
+  labs(title = "Sankey Diagram: K-means Cluster vs True Cell Labels",
+       y = "Number of Cells", x = "")
+
+```
+
+```{r}
+sessionInfo()
+```

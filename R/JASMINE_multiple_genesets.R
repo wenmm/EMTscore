@@ -18,7 +18,7 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 10)
+#' result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 2)
 
 Execute_JASMINE_parallel <- function(exprMatrix, gmt_file, cores) {
   registerDoParallel(cores)
@@ -87,7 +87,7 @@ Execute_JASMINE_parallel <- function(exprMatrix, gmt_file, cores) {
 
   # Remove empty rows
   if (nrow(Combine_JASMINE) == 0) message("NULL result") else {
-    Combine_JASMINE <- Combine_JASMINE[rowSums(is.na(Combine_JASMINE)) != ncol(Combine_JASMINE), ]
+    Combine_JASMINE = Combine_JASMINE[rowSums(is.na(Combine_JASMINE)) != ncol(Combine_JASMINE), ]
   }
   
   rownames(Combine_JASMINE) <- Combine_JASMINE$Pathway

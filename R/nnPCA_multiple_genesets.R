@@ -18,7 +18,7 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 10)
+#' result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
 
 Execute_nnPCA_parallel <- function(exprMatrix, Genesets, dimension, cores) {
   # Load gene sets

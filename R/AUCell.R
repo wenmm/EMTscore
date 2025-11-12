@@ -12,17 +12,17 @@ out <- tryCatch(
 cells_rankings <- AUCell_buildRankings(exprMatrix,plotStats=FALSE)
 geneSets <- list(geneSet1=genes)
 cells_AUC <- AUCell_calcAUC(geneSets, cells_rankings, aucMaxRank=nrow(cells_rankings)*0.05)
-cellsAUCretrieve = getAUC(cells_AUC)
-cells_AUCellScores = t(cellsAUCretrieve)
-cells_AUCellScores = data.frame(rownames(cells_AUCellScores),cells_AUCellScores)
-colnames(cells_AUCellScores) = c('SampleID','AUCell')
-row.names(cells_AUCellScores)= NULL
+cellsAUCretrieve <- getAUC(cells_AUC)
+cells_AUCellScores <- t(cellsAUCretrieve)
+cells_AUCellScores <- data.frame(rownames(cells_AUCellScores),cells_AUCellScores)
+colnames(cells_AUCellScores) <- c('SampleID','AUCell')
+row.names(cells_AUCellScores) <- NULL
 return(cells_AUCellScores)
 
 },
 
 error = function(cond) {
-cells_AUCellScores = data.frame(SampleID = "NA", AUCell = "NA")
+cells_AUCellScores <- data.frame(SampleID = "NA", AUCell = "NA")
 return(cells_AUCellScores)
 }
 )

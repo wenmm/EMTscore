@@ -34,6 +34,7 @@ data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
 #' @param colors Vector of colors for cell types.
 #'
 #' @return A ggplot object.
+#' @import ggplot2 dplyr rlang
 #' @export
 Execute_E_M_plot <- function(data_for_plot, 
                              E_colname = "Panchy_et_al_E_signature", 
@@ -41,11 +42,7 @@ Execute_E_M_plot <- function(data_for_plot,
                              celltype_colname = "celltype_annotation", 
                              colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F", 
                                         "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")) {
-  
-  library(ggplot2)
-  library(dplyr)
-  library(rlang)
-  
+    
   E <- sym(E_colname)
   M <- sym(M_colname)
   CellType <- sym(celltype_colname)
@@ -105,7 +102,7 @@ Execute_E_M_plot <- function(data_for_plot,
 #' @param M2_colname Column name for M2 score.
 #' @param celltype_colname Column name for cell type annotation.
 #' @param colors Vector of colors for cell types.
-#'
+#' @import ggplot2 dplyr rlang
 #' @return A ggplot object.
 #' @export
 Execute_M_dimension_plot <- function(data_for_plot, 
@@ -114,11 +111,7 @@ Execute_M_dimension_plot <- function(data_for_plot,
                                      celltype_colname, 
                                      colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F", 
                                                 "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")) {
-  
-  library(rlang)
-  library(ggplot2)
-  library(dplyr)
-  
+    
   M1 <- sym(M1_colname)
   M2 <- sym(M2_colname)
   CellType <- sym(celltype_colname)
@@ -179,6 +172,7 @@ Execute_M_dimension_plot <- function(data_for_plot,
 #' @param legend_position Position of the legend ("bottom", "right", etc.).
 #'
 #' @return Combined ggplot object.
+#' @import ggpubr
 #' @export
 Arrange_plots <- function(plots_list, 
                           ncol_per_row = 2, 
@@ -187,7 +181,6 @@ Arrange_plots <- function(plots_list,
                           common_legend = TRUE, 
                           legend_position = "bottom") {
   
-  library(ggpubr)
   
   if (!is.null(subtitles)) {
     if (length(subtitles) != length(plots_list)) stop("Length of 'subtitles' must match number of plots")

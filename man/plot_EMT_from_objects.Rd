@@ -21,7 +21,7 @@ A \code{ggplot} object showing smoothed EMT score trajectories along pseudotime
   for each condition.
 }
 \description{
-This function visualizes EMT (epithelial–mesenchymal transition) scores 
+This function visualizes EMT (epithelial mesenchymal transition) scores 
 across pseudotime for multiple Seurat objects. Each Seurat object is treated 
 as a different condition or sample.
 }

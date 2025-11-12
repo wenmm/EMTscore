@@ -32,14 +32,14 @@ A named list of Seurat objects with updated metadata,
   each including an EMT score column.
 }
 \description{
-This function calculates epithelial–mesenchymal transition (EMT) scores 
+This function calculates epithelial mesenchymal transition (EMT) scores 
 for one or more Seurat objects using a variety of scoring methods. 
 Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
 \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }
 \details{
 - \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores.  
-- \strong{nnPCA}: Computes nonlinear PCA–based EMT scores.  
+- \strong{nnPCA}: Computes nonlinear PCA based EMT scores.  
 - \strong{AUCell}: Calculates the Area Under the Curve (AUC) for EMT gene set enrichment.  
 - \strong{ssGSEA}: Runs single-sample GSEA for EMT signatures.  
 - \strong{SCSE}: Uses the SCSE scoring method for EMT genes.  
@@ -47,13 +47,4 @@ Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 
 Each processed Seurat object will have a new column added to 
 its \code{meta.data} slot containing EMT scores.
-}
-\examples{
-rds_file <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
-seurat_files <- c("/home/hwen6/project/EMTscore/2025_09_24/EMTscore/inst/extdata/example_seurat_obj.rds", "/home/hwen6/project/EMTscore/2025_09_24/EMTscore/inst/extdata/example_seurat_obj.rds")
-gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-
-# Using nnPCA
-seurat_list <- add_EMT_score(seurat_files, gmt_file, emt_name = "EMT_score", method = "nnPCA")
-
 }

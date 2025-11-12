@@ -4,10 +4,10 @@
 \alias{compute_Signature_score}
 \title{Compute Signature Score from Bulk Matrix or Seurat Object}
 \usage{
-compute_Signature_score(data, signature_file, row_name)
+compute_Signature_score(data, signature_file, score_name)
 }
 \arguments{
-\item{data}{A bulk gene expression matrix (genes × samples) or a Seurat object.}
+\item{data}{A bulk gene expression matrix (row names are gene names, and the column names are sample) or a Seurat object.}
 
 \item{signature_file}{Path to the signature weight file (two-column .tsv file).}
 

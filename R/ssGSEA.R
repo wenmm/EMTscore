@@ -26,6 +26,6 @@ gsva_geneSets <- GSEABase::GeneSetCollection(
 gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
 Result = gsva(gsvaPar, verbose=FALSE)      ### GSVA Function calling specifying ssGSEA as a method
 Result = data.frame(t(Result))
-colnames(Result)= score_names
+colnames(Result) <- score_names
 return(Result)
 }

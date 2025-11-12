@@ -19,7 +19,7 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_SCSE_parallel(data, gmt_file, cores = 10)
+#' result <- Execute_SCSE_parallel(data, gmt_file, cores = 2)
 
 Execute_SCSE_parallel <- function(exprMatrix, gmt_file, cores) {
   stringsAsFactors <- FALSE

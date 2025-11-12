@@ -1,6 +1,6 @@
 #' Add EMT Scores to Seurat Objects
 #'
-#' This function calculates epithelial–mesenchymal transition (EMT) scores 
+#' This function calculates epithelial mesenchymal transition (EMT) scores 
 #' for one or more Seurat objects using a variety of scoring methods. 
 #' Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
 #' \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
@@ -17,7 +17,7 @@
 #'
 #' @details
 #' - \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores.  
-#' - \strong{nnPCA}: Computes nonlinear PCA–based EMT scores.  
+#' - \strong{nnPCA}: Computes nonlinear PCA based EMT scores.  
 #' - \strong{AUCell}: Calculates the Area Under the Curve (AUC) for EMT gene set enrichment.  
 #' - \strong{ssGSEA}: Runs single-sample GSEA for EMT signatures.  
 #' - \strong{SCSE}: Uses the SCSE scoring method for EMT genes.  
@@ -29,14 +29,6 @@
 #' @return A named list of Seurat objects with updated metadata, 
 #'   each including an EMT score column.
 #'
-#' @examples
-#' rds_file <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
-#' seurat_files <- c("/home/hwen6/project/EMTscore/2025_09_24/EMTscore/inst/extdata/example_seurat_obj.rds", "/home/hwen6/project/EMTscore/2025_09_24/EMTscore/inst/extdata/example_seurat_obj.rds")
-#' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-#'
-#' # Using nnPCA
-#' seurat_list <- add_EMT_score(seurat_files, gmt_file, emt_name = "EMT_score", method = "nnPCA")
-#'
 #' @import Matrix patchwork dplyr slingshot velocyto.R ggplot2 Rmagic SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
 #' @export
 #' 
@@ -47,7 +39,6 @@ add_EMT_score <- function(seurat_files, gmt_file = NULL,
   
   method <- match.arg(method)
   
-  # read geneset（用于 Seurat, nnPCA, AUCell, ssGSEA, SCSE）
   if (is.null(gmt_file)) stop("gmt_file must be provided.")
   Genesets <- read_gmt(gmt_file)
   
@@ -63,7 +54,6 @@ add_EMT_score <- function(seurat_files, gmt_file = NULL,
       obj <- AddModuleScore(obj, features = list(emt_genes), name = "EMT_Score")
       colnames(obj@meta.data)[colnames(obj@meta.data) == "EMT_Score1"] <- emt_name
       
-      if (!(emt_name %in% colnames(obj@meta.data))) stop(paste("Score column", emt_name, "not found."))
       
     } else if (method == "nnPCA") {
       geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
@@ -98,10 +88,100 @@ add_EMT_score <- function(seurat_files, gmt_file = NULL,
   return(seurat_list)
 }
 
+#' Add Multiple EMT Scores to Seurat Objects
+#'
+#' This function calculates epithelial mesenchymal transition (EMT) related scores 
+#' for one or more Seurat objects using multiple gene sets defined in a GMT file. 
+#' Supported scoring methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
+#' \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+#'
+#' @param seurat_files A character vector of file paths to Seurat objects (\code{.rds} files).
+#'   Each file will be loaded, updated, and annotated with new EMT-related scores.
+#' @param gmt_file Character string. Path to the gene set file in GMT format.
+#'   The GMT file can contain multiple gene sets; a separate EMT score will be computed for each.
+#' @param method Character string. Scoring method to use. Must be one of:
+#'   \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, \code{"ssGSEA"}, 
+#'   \code{"SCSE"}, or \code{"JASMINE"}.
+#' @param nnPCA_dim Integer. Dimension to use for nnPCA scoring (default = 1).
+#' @param cores Integer. Number of CPU cores to use for parallel computation.
+#'
+#' @details
+#' - \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores for each gene set.  
+#' - \strong{nnPCA}: Performs nonlinear PCA based scoring for all gene sets in parallel.  
+#' - \strong{AUCell}: Calculates AUC-based enrichment scores using parallel execution.  
+#' - \strong{ssGSEA}: Computes single-sample GSEA based scores for each gene set.  
+#' - \strong{SCSE}: Applies the SCSE algorithm to compute EMT-related activity scores.  
+#' - \strong{JASMINE}: Computes EMT gene set scores using the JASMINE algorithm.  
+#'
+#' For each Seurat object, new columns will be added to the \code{meta.data} slot, 
+#' corresponding to each gene set name in the provided GMT file.
+#'
+#' @return A named list of Seurat objects with updated metadata, each containing
+#'   additional columns for all computed EMT-related gene set scores.
+#'
+#' @import Matrix patchwork dplyr slingshot velocyto.R ggplot2 Rmagic 
+#'   SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp GSA
+#' @export
+add_EMT_score_multiple <- function(seurat_files, gmt_file = NULL,
+                          method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
+                          nnPCA_dim, cores) {
+  
+  method <- match.arg(method)
+  
+  if (is.null(gmt_file)) stop("gmt_file must be provided.")
+  Genesets_obj <- GSA.read.gmt(gmt_file)
+  
+  # add label
+  names(seurat_files) <- gsub(".rds", "", basename(seurat_files))
+  
+  seurat_list <- lapply(names(seurat_files), function(name){
+    obj <- readRDS(seurat_files[name])
+    obj <- UpdateSeuratObject(obj)
+    feature_lists <- lapply(Genesets_obj$genesets, unlist)
+    feature_names <- Genesets_obj$geneset.names
+    
+    if (method == "Seurat") {
+      obj <- AddModuleScore(obj, features = feature_lists, name = "EMT_Score")
+      
+    } else if (method == "nnPCA") {
+      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+      nnPCA_Result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores)
+      obj@meta.data <- cbind(obj@meta.data, nnPCA_Result[rownames(obj@meta.data), ])
+      
+    } else if (method == "AUCell") {
+      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+      AUCell_Result <- Execute_AUCell_parallel(geneExp, gmt_file, cores)
+      obj@meta.data <- cbind(obj@meta.data, AUCell_Result[rownames(obj@meta.data), ])
+      
+    } else if (method == "ssGSEA") {
+      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+      ssGSVA_Result <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores)
+      obj@meta.data <- cbind(obj@meta.data, ssGSVA_Result[rownames(obj@meta.data), ])
+      
+    } else if (method == "SCSE") {
+      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+      SCSE_Result <- Execute_SCSE_parallel(geneExp, gmt_file, cores)
+      obj@meta.data <- cbind(obj@meta.data, SCSE_Result[rownames(obj@meta.data), ])
+      
+    } else if (method == "JASMINE") {
+      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+      JAS_Result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores)
+      obj@meta.data <- cbind(obj@meta.data, JAS_Result[rownames(obj@meta.data), ])
+    }
+    
+    return(obj)
+  })
+  
+  names(seurat_list) <- names(seurat_files)
+  return(seurat_list)
+}
+
+
+
 
 #' Plot EMT Scores Along Pseudotime from Seurat Objects
 #'
-#' This function visualizes EMT (epithelial–mesenchymal transition) scores 
+#' This function visualizes EMT (epithelial mesenchymal transition) scores 
 #' across pseudotime for multiple Seurat objects. Each Seurat object is treated 
 #' as a different condition or sample.
 #'

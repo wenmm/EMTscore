@@ -25,36 +25,79 @@ library(paletteer)
 library(ggthemes)
 library(ComplexHeatmap)
 library(EMTscore)
+library(AUCell)
+library(DoubletFinder)
+library(SeuratWrappers)
+library(monocle)
+library(slingshot)
+library(Seurat)
+library(GSA)
+library(mclust)
+library(ggalluvial)
+library(RColorBrewer)
+library(hrbrthemes)
+library(Cairo)
 options(mc.cores = 4)
+options(bitmapType='cairo')
 
 
 # Optional: set global chunk options
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
+# 1. Introduction
+##  1.1 What is EMTscore?
+Scores of EMT gene sets have been widely used to quantify the extent of the epithelial-mesenchmal transition.
+These scores are particularly useful for analyzing single-cell or bulk transcriptome samples in the context of 
+EMT continuum and intermediate EMT states. Analyses with EMT scores are challenged by complexity arising from
+divergence of EMT progression <a href="#ref1">(Groves et al. 2024)</a> and related gene sets, as well as algorithms underlying the gene set scores. In addition,
+it is often difficult to visualize and interpret EMT scores and their relation to other cellular processes.  
+EMTscore is a package for analyzing and visualizing the expression of
+multiple EMT genesets in bulk or single-cell RNA-sequencing data.
 
-# Load cell annotation
+##  1.2 Key objectives.
+EMTscore computes scores for E and M gene sets. It has options for 4 commonly used
+E/M gene sets and allow users to use their own gene lists. It also has options for multiple algorithms for computing EMT scores.
+Importantly, it leverages nonnegative PCA for identifying multiple mesenchymal (M) scores (based on leading PCs).
+It computes correlations with EMT scores with other gene set scores among samples.
+
+##  1.3 Input files.
+In our examples, we assume that the input data is processed RNA-seq data stored as r
+data files. For bulk data, the file contains the expression matrix.
+ For single-cell data, the data file contains a seurat object.
+A cell/sample annotation file should also be provided.
+
+# 2. Example walkthrough (bulk RNA-seq)
+
+## 2.1 Load cell/sample annotation
+Here we provide a `cell annotation file` <a href="#refGroves2023">Groves et al. 2023</a>. The two most important columns are: one named `name`, which represents the cell name, and another named `celltype_annotation`, which indicates the cell type classification.
 
 ```{r}
 data(cell_annotation_file)
+head(cell_annotation_file)
 ```
 
 # Download gene expression data
-
+Here we provide an example bulk gene expression matrix file from <a href="#refGroves2023">Groves et al. 2023</a>. The resulting dataset contains 120 samples and 15,950 genes, with row names representing cell names and column names representing gene symbols.
 ```{r}
 url <- "https://zenodo.org/records/17353682/files/geneExp.rda"
 destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
 load(destfile)
+head(geneExp[, 1:5], 4)
+dim(geneExp)
 ```
 
-# Load gene signature data
+## 2.3 Load gene signature data
+Here, we use a built-in gene set `Panchy_et_al_E_signature` and `Panchy_et_al_M_signature` <a href="#ref2">Panchy et al. 2022</a>.
 
+There are several additional options that users can choose from, such as: `Tan_et_al_tumor_E_signature`, `Tan_et_al_tumor_M_signature`, `Tan_et_al_cell_line_E_signature`, `Tan_et_al_cell_line_M_signature` <a href="#ref3">Tan et al. 2014</a>, `MSigDB_Hallmark` <a href="#refMSigDB">Liberzon et al. 2015</a> and `GO` <a href="#refGO">Gene Ontology Consortium 2021</a>.
 ```{r}
 data("Panchy_et_al_E_signature", package = "EMTscore")
 data("Panchy_et_al_M_signature", package = "EMTscore")
+head(Panchy_et_al_M_signature)
 ```
 
-# Prepare gene sets and save as GMT
+## 2.4 Prepare gene sets and save as GMT
 
 ```{r}
 gene_sets <- list(
@@ -64,7 +107,15 @@ Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName
 write_gmt(gene_sets, "EM_signature.gmt")
 ```
 
-# Compute scores using multiple methods
+## 2.5 Compute scores using multiple methods
+
+Gene set scores can be computed with one or more of the following methods:<br>
+`Execute_nnPCA_parallel`: nnPCA is a nonnegative PCA based method <a href='#ref4'> (Panchy et al. 2021) </a>. It is preferred because of its high efficiency and the capacity of generating muliple scores for a gene set.<br>
+`Execute_AUCell_parallel`: AUCell is a method based on area under the curve for gene ranks <a href='#ref5'> (Aibar et al. 2017) </a>.<br>
+`Execute_ssGSEA_parallel`: ssGSEA is a widely used method based on Kolmogorov-Smirnov test <a href='#ref6'> (Barbie et al. 2009) </a>. <br>
+`Execute_JASMINE_parallel`: JASMINE is a recently developed method based on gene ranks  <a href='#ref7'> (Noreen et al. 2022) </a>.<br>
+`Execute_SCSE_parallel`: SCSE is another normalized sum-based method <a href='#ref8'> (Pont et al. 2019) </a>.<br>
+
 ```{r}
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, 'EM_signature.gmt', dimension = 1, cores = 2)
 AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, 'EM_signature.gmt', cores = 2)
@@ -73,12 +124,14 @@ JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, 'EM_signature.gmt',
 SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, 'EM_signature.gmt', cores = 2)
 ```
 
-# Prepare Data for Plotting
+## 2.6 Prepare Data for Plotting
+Here we use nnPCA scores for our plot examples.
 ```{r}
 data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
 ```
 
-# E score vs M score Plot
+## 2.7 E score vs M score Plot
+As a fundamental visualization, we plot the M scores against the E scores for all samples. Sample annotations are overlaid to highlight trends across different groups, enabling us to observe patterns of epithelial–mesenchymal variation.
 ```{r}
 plot1 <- Execute_E_M_plot(
 data_for_plot,
@@ -91,7 +144,8 @@ colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
 plot1
 ```
 
-# dimension 1 M score vs dimension 2 M score Plot
+## 2.8 dimension 1 M score vs dimension 2 M score Plot
+One useful application of nnPCA-based EMT scores is to examine the potential divergence among M genes. To explore this, we extract the data projected onto multiple principal components, allowing us to capture the main axes of variation within the mesenchymal gene set. We then visualize the samples in this reduced-dimensional space, which helps reveal patterns of heterogeneity, potential subpopulations, or outlier behaviors that may be masked in the full gene expression matrix. This approach provides a more nuanced understanding of EMT dynamics and highlights subtle differences in mesenchymal programs across samples.
 ```{r}
 # Prepare M gene set and compute nnPCA
 
@@ -112,7 +166,8 @@ colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
 plot2
 ```
 
-# Combined Plot
+## 2.9 Combined Plot
+We can combine both types of scatter plot to give an overall picture.
 ```{r}
 combined_plot <- Arrange_plots(
 plots_list = list(plot1, plot2),
@@ -123,8 +178,22 @@ fig_title = "Panchy_et_al"
 combined_plot
 ```
 
+## 2.10 E/M Score Distributions
+To explore the distribution of epithelial (E) and mesenchymal (M) scores across different cell types, we plotted separate histograms for each score and cell type. This allows us to compare the overall EMT profiles between cell populations, observe shifts in epithelial or mesenchymal programs, and identify cell types enriched for higher or lower E or M scores.
+```{r}
+colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+"#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+p_hist <- data_for_plot %>%
+     ggplot( aes(x=M1_score, fill=celltype_annotation)) +
+     geom_histogram(alpha=0.6, position = 'identity') +
+     scale_fill_manual(values=colors) +
+     theme_ipsum() +
+     labs(fill="")
+p_hist
+```
 
-# Heatmap
+## 2.11 Heatmap
+Heatmaps provide an effective way to visualize the expression patterns of individual genes that contribute to each principal component, highlighting variation and clustering across samples.
 ```{r}
 # Example heatmap
 
@@ -132,13 +201,17 @@ plot_heatmap_function(t(geneExp), Panchy_et_al_M_signature)
 
 ```
 
-# single cell data analysis
-```{r}
-setwd("/home/hwen6/project/EMT/data/GSE147405Cook")
-files <- c("A549_TGFB1.rds", "A549_TNF.rds", "A549_EGF.rds")
-gmt <- "/home/hwen6/project/EMTscore/multiple_genesets/HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt"
+# 3. Example Walkthrough: Single-Cell RNA-seq
+Next, we demonstrate the analysis workflow using a separate single-cell RNA-seq dataset <a href="#refCook2020">Cook et al. 2020</a>.
 
- 
+## 3.1 Data Importing and Basic Calculations
+Users can import single-cell data either as Seurat objects (`RDS` format) or as SingleCellExperiment objects (`RDA` format). Gene sets can be provided using GMT files for input. Different scoring methods can be specified via the `method` argument. Calculated EMT scores can then be plotted against pseudotime to examine dynamic changes in epithelial–mesenchymal states.
+```{r}
+obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
+files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
+#files <- c(obj)
+gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
+
 seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "AUCell",nnPCA_dim = 1)
 p_AUCell <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 p_AUCell
@@ -147,9 +220,9 @@ seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", meth
 p_SCSE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 p_SCSE
 
-#seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
-#p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-#p_ssGSEA
+seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
+p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+p_ssGSEA
 
 seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "Seurat")
 p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
@@ -165,70 +238,305 @@ p_JASMINE
 ```
 
 
+## 3.2 Building Gaussian Mixture Models (GMM) in E-M space
+We can build simple GMMs for all cells in the E-M space so that we can identify different EMT states. 
+We can also map the existing annotations/clusters to these GMM states. This is particularly helpful to 
+identify clusters that are extreme E/M states or intermediate EMT states.
+```{r, message=FALSE}
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
 
-```{r}
-SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_10_29/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
+emt_name = c("Escore", "Mscore")
+result <- add_EMT_score_multiple(files, gmt_file, emt_name, method = "Seurat", nnPCA_dim = 1, cores = 10)
+
+#save into pdf format
+
+plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_clusters = 3) {
+  method <- match.arg(method)
+  
+  for (name in names(result)) {
+    cat("Processing:", name, "\n")
+    obj <- result[[name]]
+    
+    # Extract E and M signature data
+    sig_df <- obj@meta.data[, emt_name, drop = FALSE]
+    colnames(sig_df) <- c("Escore", "Mscore")
+    
+    # Run clustering
+    if (method == "GMM") {
+      cl <- predict_cluster_labels(sig_df, method = "GMM", PC_name = c("Escore", "Mscore"))
+    } else if (method == "Kmeans") {
+      cl <- predict_cluster_labels(sig_df, method = "Kmeans", n_clusters = n_clusters, PC_name = c("Escore", "Mscore"))
+    }
+    
+    # Scatter plot data
+    scatter_df <- data.frame(sig_df, Cluster = as.factor(cl))
+    p1 <- ggplot(scatter_df, aes(x = Escore, y = Mscore, color = Cluster)) +
+      geom_point(size = 1.5, alpha = 0.8) +
+      scale_color_brewer(palette = "Set1") +
+      theme_classic(base_size = 14) +
+      labs(title = paste0(name, " - ", method, " clustering"), x = "Escore", y = "Mscore")
+    
+    # Save scatter plot
+    scatter_file <- paste0(name, "_EM_", tolower(method), ".pdf")
+    ggsave(scatter_file, plot = p1, width = 6, height = 5)
+    message("Sved scatter plot: ", scatter_file)
+    
+    # Sankey data
+    cl_df <- data.frame(cell = rownames(sig_df), Cluster = as.character(unlist(cl)))
+    true_df <- data.frame(cell = rownames(obj@meta.data),
+                          TrueLabel = as.character(unlist(obj@meta.data$Time)))
+    df_merge <- inner_join(cl_df, true_df, by = "cell")
+    df_count <- df_merge %>%
+      group_by(Cluster, TrueLabel) %>%
+      summarise(Freq = n(), .groups = "drop")
+    
+    # Sankey plot
+    p2 <- ggplot(df_count, aes(axis1 = Cluster, axis2 = TrueLabel, y = Freq)) +
+      geom_alluvium(aes(fill = Cluster), width = 1/12) +
+      geom_stratum(width = 1/8, fill = "grey90", color = "black") +
+      geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
+      scale_x_discrete(limits = c(method, "TrueLabel"), expand = c(.1, .1)) +
+      scale_fill_brewer(palette = "Set1") +
+      theme_minimal(base_size = 14) +
+      labs(title = paste("Sankey Diagram:", method, "Cluster vs True Cell Labels -", name),
+           y = "Number of Cells", x = "")
+    
+    # Save Sankey plot
+    sankey_file <- paste0(name, "_EM_Sankey_Diagram_", tolower(method), ".pdf")
+    ggsave(sankey_file, plot = p2, width = 7, height = 5)
+    message("Saved Sankey plot: ", sankey_file)
+  }
+  
+  message("All plots successfully generated and saved.")
+}
+
+plot_all_clusters(result, method = "Kmeans", emt_name, n_clusters = 3)
+# or
+plot_all_clusters(result, method = "GMM", emt_name)
+
+```
+
+
+## 3.3 Identifying Pathways Most Associated with the EMT Process
+To understand which signaling pathways are most strongly associated with the epithelial–mesenchymal transition (EMT) process, we can compute pathway activity scores for each sample and correlate them with EMT scores.
+```{r, message=FALSE, warning=FALSE, results='hide'}
+#SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_10_29/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
 data(SCSE_Result_EMT)
-#data(SCSE_Result_multiple)
+data(SCSE_Result_multiple)
 result <- correlate_sample_scores(score_mat1 = SCSE_Result_multiple, score_mat2 = SCSE_Result_EMT, method = "spearman")
 head(result)
 ```
 
+## 3.4 Computing Additional Scores (e.g., Stemness and Senescence Scores)
+In addition to EMT scores, we can compute other relevant biological scores to further characterize cellular states, such as stemness and senescence. These scores help to assess differences in cell pluripotency, proliferative potential, and aging status.
 
+Here, we use the `compute_Signature_score` function to calculate scores for each sample based on predefined gene signatures:
+
+1. Stemness score: Calculated using the `stemsig.tsv` gene signature file, reflecting cellular pluripotency or stem-like characteristics.
 ```{r}
 signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file , score_name = "stemness_score")
 head(scores)
 ```
+
+2. Senescence score: Calculated using the `cellular_senescence_sig.tsv` gene signature file, reflecting the cellular aging state.
 ```{r}
 signature_file <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file, score_name = "senescence_score")
 head(scores)
 ```
+These scores can be used alongside EMT scores for downstream analyses, such as cell-type characterization, correlation analysis, or visualization, providing a more comprehensive view of cellular states.
 
+## 3.5 Exploring the Relationship Between Stemness, Senescence, and EMT Scores in Single-Cell Data
+In this section, we analyze single-cell RNA-seq datasets to compute stemness, senescence and EMT scores for individual cells and investigate their relationship. We first load multiple single-cell datasets and compute the scores using predefined gene signatures:
+
+1. Compute stemness and senescence scores for each cell using predefined gene signatures:
+```{r}
+files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
+
+#obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
+#files <- c(obj)
+signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
+signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
+
+signature_files <- c(signature_file1, signature_file2)
+
+result <- compute_Signature_score_SingleCell(files, signature_files, score_name = c("Stemness_Score", "Senescence_Score"))
+head(result$A549_TGFB1@meta.data)
+```
+
+2. Compute EMT Scores:
 ```{r}
 
-library(mclust) 
-cl1 <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", PC_name = c("Escore", "Mscore"))
+gmt_file = "EM_signature.gmt"
 
-library(RColorBrewer)
+files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
 
-plot(nnPCA_Result_multiple, col = brewer.pal(9,"Set1")[as.factor(cl1)], pch=16, asp = 1)
+EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+                          method = "nnPCA",
+                          nnPCA_dim = 1, cores = 2)
 
-cl2 <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 3,PC_name = c("Escore", "Mscore"))
-
-plot(nnPCA_Result_multiple, col = brewer.pal(9,"Set1")[as.factor(cl2)], pch=16, asp = 1)
-
-
-cl1 <- data.frame(cl1)
-
-cl2 <- data.frame(cl2)
-
-library(ggplot2)
-library(ggalluvial)
-library(dplyr)
-
-df_kmeans <- data.frame(cell = rownames(cl2),
-                        Kmeans = as.character(unlist(cl2$cl2)))
-df_true <- data.frame(cell = cell_annotation_file$name,
-                      TrueLabel = as.character(unlist(cell_annotation_file$celltype_annotation)))
-
-df_merge <- inner_join(df_kmeans, df_true, by = "cell")
-df_count <- df_merge %>%
-  group_by(Kmeans, TrueLabel) %>%
-  summarise(Freq = n(), .groups = "drop")
-
-ggplot(df_count, aes(axis1 = Kmeans, axis2 = TrueLabel, y = Freq)) +
-  geom_alluvium(aes(fill = Kmeans), width = 1/12) +
-  geom_stratum(width = 1/8, fill = "grey90", color = "black") +
-  geom_text(stat = "stratum", aes(label = after_stat(stratum))) +
-  scale_x_discrete(limits = c("Kmeans", "TrueLabel"), expand = c(.1, .1)) +
-  theme_minimal(base_size = 14) +
-  labs(title = "Sankey Diagram: K-means Cluster vs True Cell Labels",
-       y = "Number of Cells", x = "")
-
+head(EMscore_result$A549_TGFB1@meta.data)
 ```
+
+3. Examine Correlation Between Stemness and Senescence:
+```{r}
+df <- result$A549_TGFB1@meta.data
+cor_test <- cor.test(df$Senescence_Score, df$Stemness_Score, method = "pearson")
+R_val <- round(cor_test$estimate, 2)
+p_val <- format(cor_test$p.value, scientific = TRUE, digits = 2)
+n_clust <- length(unique(df$Time))
+palette_colors <- colorRampPalette(RColorBrewer::brewer.pal(8, "Set2"))(n_clust)
+ggplot(df, aes(x = Senescence_Score, y = Stemness_Score, color = Time)) +
+     geom_point(size = 2.5, alpha = 0.8) +
+     geom_smooth(method = "lm", se = FALSE, size = 1) +
+     scale_color_manual(values = palette_colors) +
+     annotate("text",
+              x = min(df$Senescence_Score),
+              y = max(df$Stemness_Score),
+              label = paste0("R = ", R_val, ", p < ", p_val),
+              hjust = 0, size = 5) +
+    theme_bw() +
+  theme(
+    panel.grid = element_blank(),      
+    panel.border = element_rect(       
+      colour = "black", 
+      fill = NA, 
+      size = 1
+    )) + theme(
+  text = element_text(colour = "black")
+) + theme(
+  axis.title = element_text(size = 14),     
+  axis.text  = element_text(size = 14),     
+  legend.title = element_text(size = 13),   
+  legend.text = element_text(size = 11),    
+  plot.title = element_text(size = 12, face = "bold") 
+)
+# 5.25 3.84
+```
+
+4. Integration and Visualization of Stemness, Senescence, and EMT Scores
+In this section, we integrate stemness, senescence, and EMT scores at the single-cell level to systematically explore their relationships. By merging the computed scores for each cell, we can visualize how stemness and senescence individually correlate with the epithelial (E) and mesenchymal (M) components of EMT.
+
+Specifically, we:
+
+  1.Merge metadata from stemness/senescence computations and EMT score calculations to obtain a single dataset containing all    relevant scores for each cell.
+
+  2.Visualize relationships using scatter plots, where each plot shows one pairing:
+
+      Stemness vs. E-score
+
+      Stemness vs. M-score
+
+      Senescence vs. E-score
+
+      Senescence vs. M-score
+```{r}
+# Extract metadata
+df1 <- result$A549_TGFB1@meta.data
+df2 <- EMscore_result$A549_TGFB1@meta.data
+
+# Add cell names for merging
+df1$cell <- rownames(df1)
+df2$cell <- rownames(df2)
+
+# Merge metadata
+df <- df1 %>%
+  select(cell, Stemness_Score, Senescence_Score, Time) %>%
+  left_join(df2 %>% select(cell, 
+                           Panchy_et_al_E_signature, 
+                           Panchy_et_al_M_signature), by = "cell")
+
+# Automatically generate color palette for Time groups
+n_groups <- length(unique(df$Time))
+palette_colors <- colorRampPalette(brewer.pal(8, "Set2"))(n_groups)
+
+# Define combinations to plot
+x_vars <- c("Stemness_Score", "Senescence_Score")
+y_vars <- c("Panchy_et_al_E_signature", "Panchy_et_al_M_signature")
+
+# Loop through all combinations
+for (x_var in x_vars) {
+  for (y_var in y_vars) {
+    
+    # Pearson correlation
+    cor_test <- cor.test(df[[x_var]], df[[y_var]])
+    R_val <- round(cor_test$estimate, 2)
+    p_val <- format(cor_test$p.value, scientific = TRUE, digits = 2)
+    
+    # Plot
+    p <- ggplot(df, aes_string(x = x_var, y = y_var, color = "Time")) +
+      geom_point(size = 2.5, alpha = 0.8) +
+      geom_smooth(method = "lm", se = FALSE, size = 1) +
+      scale_color_manual(values = palette_colors) +
+      annotate("text",
+               x = min(df[[x_var]]),
+               y = max(df[[y_var]]),
+               label = paste0("R = ", R_val, ", p < ", p_val),
+               hjust = 0,
+               size = 5) +
+      labs(
+        x = gsub("_", " ", x_var),
+        y = gsub("_", " ", y_var),
+        title = paste(gsub("_", " ", y_var), "vs", gsub("_", " ", x_var))
+      ) +
+      theme_bw() +
+  theme(
+    panel.grid = element_blank(),      
+    panel.border = element_rect(      
+      colour = "black", 
+      fill = NA, 
+      size = 1
+    )) + theme(
+  text = element_text(colour = "black")
+) + theme(
+  axis.title = element_text(size = 14),     
+  axis.text  = element_text(size = 14),    
+  legend.title = element_text(size = 13),   
+  legend.text = element_text(size = 11),    
+  plot.title = element_text(size = 12, face = "bold")  
+)
+    
+    print(p)
+  }
+}
+```
+
 
 ```{r}
 sessionInfo()
 ```
+
+
+# References
+<h6 id='ref1'> Groves, S. M., Panchy, N., Tyson, D. R., Harris, L. A., Quaranta, V., & Hong, T. (2023). Involvement of Epithelial–Mesenchymal Transition Genes in Small Cell Lung Cancer Phenotypic Plasticity. Cancers, 15(5), 1477. </h6>
+
+<h6 id='ref2'> Panchy, N., Watanabe, K., Takahashi, M., Willems, A., & Hong, T. (2022). Comparative single-cell transcriptomes of dose and time dependent epithelial–mesenchymal spectrums. NAR Genom. Bioinform. 4, lqac072.  </h6>
+
+<h6 id="refGroves2023">
+Groves SM, Ildefonso GV, McAtee CO, Ozawa PMM, Ireland AS, Stauffer PE, Wasdin PT, Huang X, Qiao Y, Lim JS, Bader J, Liu Q, Simmons AJ, Lau KS, Iams WT, Hardin DP, Saff EB, Holmes WR, Tyson DR, Lovly CM, Quaranta V.  
+Archetype tasks link intratumoral heterogeneity to plasticity and cancer hallmarks in small cell lung cancer.  
+<i>Cell</i>. 2023;186(20):4306–4328.e18.
+</h6>
+
+
+<h6 id='ref3'> Tan, T. Z., Miow, Q. H., Miki, Y., Noda, T., Mori, S., Huang, R. Y., & Thiery, J. P. (2014).
+Epithelial–mesenchymal transition spectrum quantification and its efficacy in deciphering survival and drug responses of cancer patients. EMBO Molecular Medicine, 6(10), 1279–1293. </h6>
+
+<h6 id="refMSigDB"> Liberzon A, Birger C, Thorvaldsdóttir H, et al. The Molecular Signatures Database (MSigDB) hallmark gene set collection. Cell Systems. 2015;1(6):417–425. </h6>
+
+<h6 id="refGO"> The Gene Ontology Consortium. The Gene Ontology resource: enriching a gold mine. Nucleic Acids Research. 2021;49(D1):D325–D334. </h6>
+
+
+<h6 id='ref4'> Panchy, N., Watanabe, K., & Hong, T. (2021). Interpretable, scalable, and transferrable functional projection of large-scale transcriptome data using constrained matrix decomposition. Frontiers in Genetics, 12, 719099. </h6>
+
+<h6 id='ref5'> Aibar, S., González-Blas, C. B., Moerman, T., Huynh-Thu, V. A., Imrichova, H., Hulselmans, G., ... & Aerts, S. (2017). SCENIC: single-cell regulatory network inference and clustering. Nature methods, 14(11), 1083-1086.</h6>
+
+<h6 id='ref6'> Barbie D.A., Tamayo P., Boehm J.S., Kim S.Y., Moody S.E., Dunn I.F., Schinzel A.C., Sandy P., Meylan E., Scholl C.et al.. Systematic RNA interference reveals that oncogenic KRAS-driven cancers require TBK1. Nature. 2009; 462:108–112.  </h6>
+
+<h6 id='ref7'> Noureen N., Ye Z., Chen Y., Wang X., Zheng S.. Signature-scoring methods developed for bulk samples are not adequate for cancer single-cell RNA sequencing data. Elife. 2022; 11:e71994. </h6>
+
+<h6 id='ref8'> Pont F., Tosolini M., Fournié J.J.. Single-Cell Signature Explorer for comprehensive visualization of single cell signatures across scRNA-seq datasets. Nucleic Acids Res. 2019; 47:e133. </h6>
+
+<h6 id="refCook2020"> Cook DP, Vanderhyden BC. Context specificity of the EMT transcriptional response. Nat Commun. 2020 May 1;11(1):2142. </h6>

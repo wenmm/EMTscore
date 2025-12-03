@@ -87,6 +87,13 @@ compute_Signature_score <- function(data, signature_file, score_name) {
 #' @importFrom stats cor
 #' @importFrom utils read.delim
 #' @importFrom magrittr %>%
+#' @examples
+#' obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
+#' files <- c(obj)
+#' signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
+#' signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
+#' signature_files <- c(signature_file1, signature_file2)
+#' result <- compute_Signature_score_SingleCell(files, signature_files, score_name = c("Stemness_Score", "Senescence_Score"))
 #' @export
 compute_Signature_score_SingleCell <- function(seurat_files, signature_files, score_names) {
   # Check input consistency

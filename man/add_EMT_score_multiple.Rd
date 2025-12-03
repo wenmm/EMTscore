@@ -2,22 +2,25 @@
 % Please edit documentation in R/Singlecell_EMTscore.R
 \name{add_EMT_score_multiple}
 \alias{add_EMT_score_multiple}
-\title{Add Multiple EMT Scores to Seurat Objects}
+\title{Add Multiple EMT Scores to Seurat or SCE Objects}
 \usage{
 add_EMT_score_multiple(
-  seurat_files,
+  files,
   gmt_file = NULL,
+  emt_names,
   method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
   nnPCA_dim,
   cores
 )
 }
 \arguments{
-\item{seurat_files}{A character vector of file paths to Seurat objects (\code{.rds} files).
-Each file will be loaded, updated, and annotated with new EMT-related scores.}
+\item{files}{A character vector of file paths to Seurat or SCE objects (\code{.rds}
+or \code{.rda} files).}
 
 \item{gmt_file}{Character string. Path to the gene set file in GMT format.
 The GMT file can contain multiple gene sets; a separate EMT score will be computed for each.}
+
+\item{emt_names}{Character vector. Names of the EMT score columns to add.}
 
 \item{method}{Character string. Scoring method to use. Must be one of:
 \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, \code{"ssGSEA"}, 
@@ -33,7 +36,7 @@ A named list of Seurat objects with updated metadata, each containing
 }
 \description{
 This function calculates epithelial mesenchymal transition (EMT) related scores 
-for one or more Seurat objects using multiple gene sets defined in a GMT file. 
+for multiple single-cell objects using multiple gene sets defined in a GMT file. 
 Supported scoring methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
 \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }

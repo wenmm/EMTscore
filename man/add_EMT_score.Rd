@@ -2,10 +2,10 @@
 % Please edit documentation in R/Singlecell_EMTscore.R
 \name{add_EMT_score}
 \alias{add_EMT_score}
-\title{Add EMT Scores to Seurat Objects}
+\title{Add EMT Scores to Seurat or SCE Objects}
 \usage{
 add_EMT_score(
-  seurat_files,
+  files,
   gmt_file = NULL,
   emt_name,
   method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
@@ -13,7 +13,8 @@ add_EMT_score(
 )
 }
 \arguments{
-\item{seurat_files}{A character vector of file paths to Seurat objects (\code{.rds} files).}
+\item{files}{A character vector of file paths to Seurat or SCE objects (\code{.rds}
+or \code{.rda}  files).}
 
 \item{gmt_file}{Character string. Path to the gene set file in GMT format. 
 Must include an EMT gene signature.}
@@ -33,7 +34,7 @@ A named list of Seurat objects with updated metadata,
 }
 \description{
 This function calculates epithelial mesenchymal transition (EMT) scores 
-for one or more Seurat objects using a variety of scoring methods. 
+for one or more single-cell objects using a variety of scoring methods. 
 Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
 \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }

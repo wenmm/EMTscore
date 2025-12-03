@@ -34,14 +34,13 @@ Imports:
     curl,
     DoubletFinder,
     Matrix,
-    Rmagic,
     SeuratWrappers,
     data.table,
     monocle,
     patchwork,
     slingshot,
-    velocyto.R,
-    mclust
+    mclust,
+    Cairo
 Suggests:
     testthat,
     knitr,

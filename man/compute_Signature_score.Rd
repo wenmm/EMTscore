@@ -11,7 +11,7 @@ compute_Signature_score(data, signature_file, score_name)
 
 \item{signature_file}{Path to the signature weight file (two-column .tsv file).}
 
-\item{row_name}{Character string. The name to assign to the resulting score column.}
+\item{score_name}{Character string. The name to assign to the resulting score column.}
 }
 \value{
 A numeric matrix (for bulk input) or a Seurat object with a new metadata column (for Seurat input).

@@ -4,10 +4,10 @@
 \alias{plot_EMT_from_objects}
 \title{Plot EMT Scores Along Pseudotime from Seurat Objects}
 \usage{
-plot_EMT_from_objects(seurat_list, col_name, emt_score_col)
+plot_EMT_from_objects(obj_list, col_name, emt_score_col)
 }
 \arguments{
-\item{seurat_list}{A named list of Seurat objects. Each element should be a Seurat object 
+\item{obj_list}{A named list of Seurat objects. Each element should be a Seurat object 
 with the EMT score already computed and stored in the metadata.}
 
 \item{col_name}{Character string. Name of the column in \code{meta.data} containing 
@@ -26,7 +26,7 @@ across pseudotime for multiple Seurat objects. Each Seurat object is treated
 as a different condition or sample.
 }
 \examples{
-# Assume seurat_list has EMT scores calculated
-p <- plot_EMT_from_objects(seurat_list, col_name = "Pseudotime", emt_score_col = "EMT_Score")
+# Assume obj_list has EMT scores calculated
+p <- plot_EMT_from_objects(obj_list, col_name = "Pseudotime", emt_score_col = "EMT_Score")
 
 }

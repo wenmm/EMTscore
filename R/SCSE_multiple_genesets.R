@@ -63,7 +63,6 @@ Execute_SCSE_parallel <- function(exprMatrix, gmt_file, cores) {
   
   #---------------- Parallel SCSE computation ----------------#
   Combine_SCSE <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
-    message("Processing gene set ", k, "/", GSsize, ": ", Genesets$geneset.names[k])
     Execute_SCSE(exprMatrix, Genesets, k)
   }
   rownames(Combine_SCSE) <- Combine_SCSE$Pathway

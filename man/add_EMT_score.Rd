@@ -5,47 +5,42 @@
 \title{Add EMT Scores to Seurat or SCE Objects}
 \usage{
 add_EMT_score(
-  files,
-  gmt_file = NULL,
-  emt_name,
+  objects,
+  gmt_file,
+  emt_name = "EMT_Score",
   method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
   nnPCA_dim = 1
 )
 }
 \arguments{
-\item{files}{A character vector of file paths to Seurat or SCE objects (\code{.rds}
-or \code{.rda}  files).}
+\item{objects}{A named list of Seurat or SingleCellExperiment objects
+that have already been loaded in the R session.}
 
-\item{gmt_file}{Character string. Path to the gene set file in GMT format. 
-Must include an EMT gene signature.}
+\item{gmt_file}{Character string. Path to a GMT file containing EMT gene sets.}
 
-\item{emt_name}{Character string. Name of the EMT score column to be added 
-to the Seurat object metadata. Default: \code{"EMT_Score"}.}
+\item{emt_name}{Character string. Name of the EMT score column to add.}
 
-\item{method}{Character string. Scoring method to use. 
-Must be one of: \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
+\item{method}{Character string. Scoring method to use. One of:
+\code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.}
 
-\item{nnPCA_dim}{Integer. Dimension to use for nnPCA scoring (default = 1).}
+\item{nnPCA_dim}{Integer. Dimension for nnPCA (default = 1).}
 }
 \value{
-A named list of Seurat objects with updated metadata, 
-  each including an EMT score column.
+A named list of Seurat objects with a new metadata column containing EMT scores.
 }
 \description{
-This function calculates epithelial mesenchymal transition (EMT) scores 
-for one or more single-cell objects using a variety of scoring methods. 
-Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
+This function calculates epithelial–mesenchymal transition (EMT) scores
+for one or more single-cell objects using multiple scoring methods.
+Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }
-\details{
-- \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores.  
-- \strong{nnPCA}: Computes nonlinear PCA based EMT scores.  
-- \strong{AUCell}: Calculates the Area Under the Curve (AUC) for EMT gene set enrichment.  
-- \strong{ssGSEA}: Runs single-sample GSEA for EMT signatures.  
-- \strong{SCSE}: Uses the SCSE scoring method for EMT genes.  
-- \strong{JASMINE}: Computes EMT scores via the JASMINE algorithm.  
-
-Each processed Seurat object will have a new column added to 
-its \code{meta.data} slot containing EMT scores.
+\examples{
+eh = ExperimentHub()
+A549_TNF <- eh[['EH10291']]
+A549_EGF <- eh[['EH10292']]
+A549_TGFB1 <- eh[['EH10293']]
+objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
+gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
+seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
 }

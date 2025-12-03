@@ -30,3 +30,14 @@ A ggplot object.
 \description{
 Scatter plot of two M scores with mean ± SD per cell type.
 }
+\examples{
+plot2 <- Execute_M_dimension_plot(
+data_for_plot,
+M1_colname = "M1_score",
+M2_colname = "M2_score",
+celltype_colname = "celltype_annotation",
+colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+          "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+)
+
+}

@@ -5,49 +5,41 @@
 \title{Add Multiple EMT Scores to Seurat or SCE Objects}
 \usage{
 add_EMT_score_multiple(
-  files,
-  gmt_file = NULL,
+  objects,
+  gmt_file,
   emt_names,
   method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
-  nnPCA_dim,
-  cores
+  nnPCA_dim = 1,
+  cores = 1
 )
 }
 \arguments{
-\item{files}{A character vector of file paths to Seurat or SCE objects (\code{.rds}
-or \code{.rda} files).}
+\item{objects}{A named list of Seurat or SingleCellExperiment objects already in memory.}
 
-\item{gmt_file}{Character string. Path to the gene set file in GMT format.
-The GMT file can contain multiple gene sets; a separate EMT score will be computed for each.}
+\item{gmt_file}{Character string. Path to GMT file with multiple gene sets.}
 
-\item{emt_names}{Character vector. Names of the EMT score columns to add.}
+\item{emt_names}{Character vector. Column names to assign to the resulting EMT scores.}
 
-\item{method}{Character string. Scoring method to use. Must be one of:
-\code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, \code{"ssGSEA"}, 
-\code{"SCSE"}, or \code{"JASMINE"}.}
+\item{method}{Character string. Scoring method.}
 
-\item{nnPCA_dim}{Integer. Dimension to use for nnPCA scoring (default = 1).}
+\item{nnPCA_dim}{Integer. Dimension used in nnPCA.}
 
-\item{cores}{Integer. Number of CPU cores to use for parallel computation.}
+\item{cores}{Integer. Number of CPU cores for parallel computation.}
 }
 \value{
-A named list of Seurat objects with updated metadata, each containing
-  additional columns for all computed EMT-related gene set scores.
+A named list of Seurat objects with multiple EMT score columns added.
 }
 \description{
-This function calculates epithelial mesenchymal transition (EMT) related scores 
-for multiple single-cell objects using multiple gene sets defined in a GMT file. 
-Supported scoring methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
-\code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+Computes EMT-related scores for multiple gene sets defined in a GMT file.
 }
-\details{
-- \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores for each gene set.  
-- \strong{nnPCA}: Performs nonlinear PCA based scoring for all gene sets in parallel.  
-- \strong{AUCell}: Calculates AUC-based enrichment scores using parallel execution.  
-- \strong{ssGSEA}: Computes single-sample GSEA based scores for each gene set.  
-- \strong{SCSE}: Applies the SCSE algorithm to compute EMT-related activity scores.  
-- \strong{JASMINE}: Computes EMT gene set scores using the JASMINE algorithm.  
+\examples{
+eh = ExperimentHub()
+A549_TNF <- eh[['EH10291']]
+A549_EGF <- eh[['EH10292']]
+A549_TGFB1 <- eh[['EH10293']]
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
+EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+method = "nnPCA", nnPCA_dim = 1, cores = 2)
 
-For each Seurat object, new columns will be added to the \code{meta.data} slot, 
-corresponding to each gene set name in the provided GMT file.
 }

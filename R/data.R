@@ -47,3 +47,20 @@
 #' 
 "cell_annotation_file"
 
+
+#' nnPCA_Result_EMT
+#'
+#' This dataset contains EMT score computed using the nnPCA method.
+#'
+#' @docType data
+#' @usage data(nnPCA_Result_EMT)
+#' @format A data frame or matrix of nnPCA-based EMT score.
+#' \describe{
+#'   EMT score results generated using the nnPCA method.
+#' }
+#' @examples
+#' data(nnPCA_Result_EMT)
+#'
+"nnPCA_Result_EMT"
+
+

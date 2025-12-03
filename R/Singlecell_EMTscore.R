@@ -1,228 +1,189 @@
 #' Add EMT Scores to Seurat or SCE Objects
 #'
-#' This function calculates epithelial mesenchymal transition (EMT) scores 
-#' for one or more single-cell objects using a variety of scoring methods. 
-#' Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
+#' This function calculates epithelial–mesenchymal transition (EMT) scores
+#' for one or more single-cell objects using multiple scoring methods.
+#' Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 #' \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 #'
-#' @param files A character vector of file paths to Seurat or SCE objects (\code{.rds}
-#' or \code{.rda}  files).
-#' @param gmt_file Character string. Path to the gene set file in GMT format. 
-#'   Must include an EMT gene signature.
-#' @param emt_name Character string. Name of the EMT score column to be added 
-#'   to the Seurat object metadata. Default: \code{"EMT_Score"}.
-#' @param method Character string. Scoring method to use. 
-#'   Must be one of: \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
+#' @param objects A named list of Seurat or SingleCellExperiment objects
+#'   that have already been loaded in the R session.
+#' @param gmt_file Character string. Path to a GMT file containing EMT gene sets.
+#' @param emt_name Character string. Name of the EMT score column to add.
+#' @param method Character string. Scoring method to use. One of:
+#'   \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 #'   \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.
-#' @param nnPCA_dim Integer. Dimension to use for nnPCA scoring (default = 1).
+#' @param nnPCA_dim Integer. Dimension for nnPCA (default = 1).
 #'
-#' @details
-#' - \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores.  
-#' - \strong{nnPCA}: Computes nonlinear PCA based EMT scores.  
-#' - \strong{AUCell}: Calculates the Area Under the Curve (AUC) for EMT gene set enrichment.  
-#' - \strong{ssGSEA}: Runs single-sample GSEA for EMT signatures.  
-#' - \strong{SCSE}: Uses the SCSE scoring method for EMT genes.  
-#' - \strong{JASMINE}: Computes EMT scores via the JASMINE algorithm.  
-#'
-#' Each processed Seurat object will have a new column added to 
-#' its \code{meta.data} slot containing EMT scores.
-#'
-#' @return A named list of Seurat objects with updated metadata, 
-#'   each including an EMT score column.
-#'
-#' @import Matrix patchwork dplyr slingshot ggplot2 SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
-#' @export
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
+#' @return A named list of Seurat objects with a new metadata column containing EMT scores.
 #' 
-
-add_EMT_score <- function(files, gmt_file = NULL,
-                          emt_name, method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
+#' @examples
+#' eh = ExperimentHub()
+#' A549_TNF <- eh[['EH10291']]
+#' A549_EGF <- eh[['EH10292']]
+#' A549_TGFB1 <- eh[['EH10293']]
+#' objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
+#' gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
+#' seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
+#' @export
+add_EMT_score <- function(objects,
+                          gmt_file,
+                          emt_name = "EMT_Score",
+                          method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
                           nnPCA_dim = 1) {
   
   method <- match.arg(method)
-  
-  if (is.null(gmt_file)) stop("gmt_file must be provided.")
   Genesets <- read_gmt(gmt_file)
+  emt_genes <- Genesets$gene
   
-  # add label
-  names(files) <- gsub("\\.rds$|\\.rda$", "", basename(files))
-  
-  obj_list <- lapply(names(files), function(name){
-    file <- files[name]
+  obj_list <- lapply(names(objects), function(name) {
     
-    if (grepl("\\.rds$", file)){
-      obj <- readRDS(file)
-    }
-    else if (grepl("\\.rda$", file)){
-      e <- new.env()
-      load(file, envir = e)
-      obj <- e[[ls(e)[1]]]
-    }
-    else{
-      stop("Unsupported file type")
-    }
+    obj <- objects[[name]]
     
-    if (inherits(obj, "SingleCellExperiment")){
-      message("Converting SCE to Seurat")
+    # Convert SCE → Seurat
+    if (inherits(obj, "SingleCellExperiment")) {
+      message("Converting SCE to Seurat: ", name)
       obj <- as.Seurat(obj, data = "logcounts")
     }
-    else if (!inherits(obj, "Seurat")){
-      stop("Unsupported object type")
+    if (!inherits(obj, "Seurat")) {
+      stop("Object ", name, " is not a Seurat or SCE object.")
     }
-
+    
     obj <- UpdateSeuratObject(obj)
-    emt_genes <- Genesets$gene
+    
+    # get gene expression matrix
+    geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
     
     if (method == "Seurat") {
-      obj <- AddModuleScore(obj, features = list(emt_genes), name = "EMT_Score", ctrl = 5)
-      colnames(obj@meta.data)[colnames(obj@meta.data) == "EMT_Score1"] <- emt_name
       
+      obj <- AddModuleScore(obj, features = list(emt_genes), name = emt_name, ctrl = 5)
+      colnames(obj@meta.data)[colnames(obj@meta.data) == paste0(emt_name, "1")] <- emt_name
       
     } else if (method == "nnPCA") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      nnPCA_Result <- Execute_nnPCA(geneExp, gmt_file, dimension = 1, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- nnPCA_Result[rownames(obj@meta.data), emt_name]
+      
+      r <- Execute_nnPCA(geneExp, gmt_file, dimension = nnPCA_dim, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
       
     } else if (method == "AUCell") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      AUCell_Result <- Execute_AUCell(geneExp, gmt_file, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- AUCell_Result[rownames(obj@meta.data), emt_name]
+      
+      r <- Execute_AUCell(geneExp, gmt_file, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
       
     } else if (method == "ssGSEA") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      ssGSVA_Result <- Execute_ssGSVA(geneExp, gmt_file, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- ssGSVA_Result[rownames(obj@meta.data), emt_name]
+      
+      r <- Execute_ssGSVA(geneExp, gmt_file, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
       
     } else if (method == "SCSE") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      SCSE_Result <- Execute_SCSE(geneExp, gmt_file, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- SCSE_Result[rownames(obj@meta.data), emt_name]
+      
+      r <- Execute_SCSE(geneExp, gmt_file, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
       
     } else if (method == "JASMINE") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      JAS_Result <- Execute_JAS(geneExp, gmt_file, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- JAS_Result[rownames(obj@meta.data), emt_name]
+      
+      r <- Execute_JAS(geneExp, gmt_file, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
     }
     
     return(obj)
   })
   
-  names(obj_list) <- names(files)
+  names(obj_list) <- names(objects)
   return(obj_list)
 }
+
 
 #' Add Multiple EMT Scores to Seurat or SCE Objects
 #'
-#' This function calculates epithelial mesenchymal transition (EMT) related scores 
-#' for multiple single-cell objects using multiple gene sets defined in a GMT file. 
-#' Supported scoring methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, 
-#' \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+#' Computes EMT-related scores for multiple gene sets defined in a GMT file.
 #'
-#' @param files A character vector of file paths to Seurat or SCE objects (\code{.rds}
-#' or \code{.rda} files).
-#' @param gmt_file Character string. Path to the gene set file in GMT format.
-#'   The GMT file can contain multiple gene sets; a separate EMT score will be computed for each.
-#' @param emt_names Character vector. Names of the EMT score columns to add.
-#' @param method Character string. Scoring method to use. Must be one of:
-#'   \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"}, \code{"ssGSEA"}, 
-#'   \code{"SCSE"}, or \code{"JASMINE"}.
-#' @param nnPCA_dim Integer. Dimension to use for nnPCA scoring (default = 1).
-#' @param cores Integer. Number of CPU cores to use for parallel computation.
+#' @param objects A named list of Seurat or SingleCellExperiment objects already in memory.
+#' @param gmt_file Character string. Path to GMT file with multiple gene sets.
+#' @param emt_names Character vector. Column names to assign to the resulting EMT scores.
+#' @param method Character string. Scoring method.
+#' @param nnPCA_dim Integer. Dimension used in nnPCA.
+#' @param cores Integer. Number of CPU cores for parallel computation.
 #'
-#' @details
-#' - \strong{Seurat}: Uses \code{Seurat::AddModuleScore} to compute module scores for each gene set.  
-#' - \strong{nnPCA}: Performs nonlinear PCA based scoring for all gene sets in parallel.  
-#' - \strong{AUCell}: Calculates AUC-based enrichment scores using parallel execution.  
-#' - \strong{ssGSEA}: Computes single-sample GSEA based scores for each gene set.  
-#' - \strong{SCSE}: Applies the SCSE algorithm to compute EMT-related activity scores.  
-#' - \strong{JASMINE}: Computes EMT gene set scores using the JASMINE algorithm.  
-#'
-#' For each Seurat object, new columns will be added to the \code{meta.data} slot, 
-#' corresponding to each gene set name in the provided GMT file.
-#'
-#' @return A named list of Seurat objects with updated metadata, each containing
-#'   additional columns for all computed EMT-related gene set scores.
-#'
-#' @import Matrix patchwork dplyr slingshot ggplot2 
-#'   SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp GSA
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
+#' @return A named list of Seurat objects with multiple EMT score columns added.
+#' @examples
+#' eh = ExperimentHub()
+#' A549_TNF <- eh[['EH10291']]
+#' A549_EGF <- eh[['EH10292']]
+#' A549_TGFB1 <- eh[['EH10293']]
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
+#' EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+#' method = "nnPCA", nnPCA_dim = 1, cores = 2)
+#' 
 #' @export
-add_EMT_score_multiple <- function(files, gmt_file = NULL,emt_names,
-                          method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
-                          nnPCA_dim, cores) {
+add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
+                                   method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
+                                   nnPCA_dim = 1, cores = 1) {
   
   method <- match.arg(method)
   
-  if (is.null(gmt_file)) stop("gmt_file must be provided.")
   Genesets_obj <- GSA.read.gmt(gmt_file)
+  feature_lists <- lapply(Genesets_obj$genesets, unlist)
+  feature_names <- Genesets_obj$geneset.names
   
-  # add label
-  names(files) <- gsub(".rds", "", basename(files))
-  
-  obj_list <- lapply(names(files), function(name){
+  obj_list <- lapply(names(objects), function(name) {
     
-    file <- files[name]
-    if (grepl("\\.rds$", file)) {
-      obj <- readRDS(file)
-    } else if (grepl("\\.rda$", file)) {
-      e <- new.env()
-      load(file, envir = e)
-      obj <- e[[ls(e)[1]]]
-    } else {
-      stop("Unsupported file type")
-    }
+    obj <- objects[[name]]
     
     if (inherits(obj, "SingleCellExperiment")) {
-      message("Converting SCE → Seurat using as.Seurat() ...")
+      message("Converting SCE to Seurat: ", name)
       obj <- as.Seurat(obj, data = "logcounts")
-    } else if (!inherits(obj, "Seurat")) {
-      stop("Unsupported object type")
     }
+    if (!inherits(obj, "Seurat"))
+      stop("Object ", name, " is not a Seurat or SCE object.")
     
     obj <- UpdateSeuratObject(obj)
-    feature_lists <- lapply(Genesets_obj$genesets, unlist)
-    feature_names <- Genesets_obj$geneset.names
+    geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
     
     if (method == "Seurat") {
+      
       obj <- AddModuleScore(obj, features = feature_lists, name = emt_names, ctrl = 5)
+      
+      # Rename Seurat default column names
       for (i in seq_along(emt_names)) {
-        old_name <- paste0(emt_names[i], i)
-        if (old_name %in% colnames(obj@meta.data)) {
-          colnames(obj@meta.data)[colnames(obj@meta.data) == old_name] <- emt_names[i]
-        }
+        old <- paste0(emt_names[i], i)
+        if (old %in% colnames(obj@meta.data))
+          colnames(obj@meta.data)[colnames(obj@meta.data) == old] <- emt_names[i]
       }
       
     } else if (method == "nnPCA") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      nnPCA_Result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores)
-      obj@meta.data <- cbind(obj@meta.data, nnPCA_Result[rownames(obj@meta.data), ])
+      
+      r <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = nnPCA_dim, cores = cores)
+      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "AUCell") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      AUCell_Result <- Execute_AUCell_parallel(geneExp, gmt_file, cores)
-      obj@meta.data <- cbind(obj@meta.data, AUCell_Result[rownames(obj@meta.data), ])
+      
+      r <- Execute_AUCell_parallel(geneExp, gmt_file, cores = cores)
+      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "ssGSEA") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      ssGSVA_Result <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores)
-      obj@meta.data <- cbind(obj@meta.data, ssGSVA_Result[rownames(obj@meta.data), ])
+      
+      r <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = cores)
+      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "SCSE") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      SCSE_Result <- Execute_SCSE_parallel(geneExp, gmt_file, cores)
-      obj@meta.data <- cbind(obj@meta.data, SCSE_Result[rownames(obj@meta.data), ])
+      
+      r <- Execute_SCSE_parallel(geneExp, gmt_file, cores = cores)
+      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "JASMINE") {
-      geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
-      JAS_Result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores)
-      obj@meta.data <- cbind(obj@meta.data, JAS_Result[rownames(obj@meta.data), ])
+      
+      r <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = cores)
+      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
     }
     
     return(obj)
   })
   
-  names(obj_list) <- names(files)
+  names(obj_list) <- names(objects)
   return(obj_list)
 }
-
 
 
 

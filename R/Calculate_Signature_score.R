@@ -57,14 +57,14 @@ compute_Signature_score <- function(data, signature_file, score_name) {
 }
 
 
-#' Compute Multiple Signature Scores for Single-Cell Seurat Objects
+#' Compute Multiple Signature Scores for Single-Cell Objects
 #'
 #' This function calculates one or more gene signature scores for single-cell datasets 
-#' stored as Seurat objects. Each score is computed using Spearman correlation 
+#' stored as Seurat or SingleCellExperiment (SCE) objects. Each score is computed using Spearman correlation 
 #' between gene expression profiles and signature weights, followed by min-max normalization.
 #' The resulting scores are added to the Seurat object metadata.
 #'
-#' @param seurat_files A character vector of paths to Seurat object `.rds` files.
+#' @param objects A named list of Seurat or SingleCellExperiment objects
 #' Each file will be read, updated, and annotated with computed signature scores.
 #' @param signature_files A character vector of paths to signature weight files 
 #' (two-column `.tsv` or `.txt` files with gene symbols and weights). 
@@ -89,55 +89,69 @@ compute_Signature_score <- function(data, signature_file, score_name) {
 #' @importFrom magrittr %>%
 #' @examples
 #' obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
-#' files <- c(obj)
+#' obj1 <- readRDS(obj)
+#' files <- c(test = obj1)
 #' signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 #' signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 #' signature_files <- c(signature_file1, signature_file2)
 #' result <- compute_Signature_score_SingleCell(files, signature_files, score_name = c("Stemness_Score", "Senescence_Score"))
 #' @export
-compute_Signature_score_SingleCell <- function(seurat_files, signature_files, score_names) {
-  # Check input consistency
+compute_Signature_score_SingleCell <- function(objects, signature_files, score_names) {
+  
   if (length(signature_files) != length(score_names)) {
     stop("The number of signature files must match the number of score names.")
   }
+  if (is.null(names(objects))) {
+    stop("objects must be a named list.")
+  }
   
-  # Load all signature weight files
+  # ---- load gene weight files ----
   weights_list <- lapply(signature_files, function(f) {
     w <- read.delim(f, header = FALSE, row.names = 1) %>% as.matrix() %>% drop()
     return(w)
   })
   
-  # Helper function: compute normalized Spearman correlation score
+  # ---- helper: normalized spearman correlation ----
   compute_score <- function(expr_mat, w) {
     w <- w[rownames(expr_mat)]
-    s <- apply(expr_mat, 2, function(z) cor(z, w, method = "sp", use = "complete.obs"))
-    s <- s - min(s)
-    s <- s / max(s)
+    s <- apply(expr_mat, 2,
+               function(z) cor(z, w, method = "sp", use = "complete.obs"))
+    s <- s - min(s, na.rm = TRUE)
+    s <- s / max(s, na.rm = TRUE)
     return(s)
   }
   
-  # Assign file names
-  names(seurat_files) <- gsub("\\.rds$", "", basename(seurat_files))
-  
-  # Process each Seurat object
-  seurat_list <- lapply(names(seurat_files), function(name) {
-    obj <- readRDS(seurat_files[name])
+  # ---- process each object ----
+  obj_list <- lapply(names(objects), function(name) {
+    
+    obj <- objects[[name]]
+    
+    # 1. Convert SCE → Seurat
+    if (inherits(obj, "SingleCellExperiment")) {
+      message("Converting SCE to Seurat: ", name)
+      obj <- as.Seurat(obj, data = "logcounts")
+    }
+    
+    # 2. Validate
+    if (!inherits(obj, "Seurat")) {
+      stop("Object ", name, " is not a Seurat or SingleCellExperiment object.")
+    }
+    
+    # 3. Ensure updated structure
     obj <- UpdateSeuratObject(obj)
     
-    if (inherits(obj, "Seurat")) {
-      expr_mat <- Seurat::GetAssayData(obj, assay = "RNA", slot = "data")
-      
-      # Loop over all signatures
-      for (i in seq_along(weights_list)) {
-        score <- compute_score(expr_mat, weights_list[[i]])
-        obj@meta.data[[score_names[i]]] <- score[rownames(obj@meta.data)]
-      }
-      return(obj)
+    # 4. Extract expression exactly like your code
+    geneExp <- Seurat::GetAssayData(obj, assay = "RNA", slot = "data")
+    
+    # 5. Compute scores for each signature
+    for (i in seq_along(weights_list)) {
+      score <- compute_score(geneExp, weights_list[[i]])
+      obj@meta.data[[score_names[i]]] <- score[rownames(obj@meta.data)]
     }
+    
+    return(obj)
   })
   
-  names(seurat_list) <- names(seurat_files)
-  return(seurat_list)
+  names(obj_list) <- names(objects)
+  return(obj_list)
 }
-
-

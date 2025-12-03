@@ -37,6 +37,8 @@ library(ggalluvial)
 library(RColorBrewer)
 library(hrbrthemes)
 library(Cairo)
+library(ExperimentHub)
+library(SummarizedExperiment)
 options(mc.cores = 4)
 options(bitmapType='cairo')
 
@@ -110,12 +112,23 @@ write_gmt(gene_sets, "EM_signature.gmt")
 ## 2.5 Compute scores using multiple methods
 
 Gene set scores can be computed with one or more of the following methods:<br>
-`Execute_nnPCA_parallel`: nnPCA is a nonnegative PCA based method <a href='#ref4'> (Panchy et al. 2021) </a>. It is preferred because of its high efficiency and the capacity of generating muliple scores for a gene set.<br>
-`Execute_AUCell_parallel`: AUCell is a method based on area under the curve for gene ranks <a href='#ref5'> (Aibar et al. 2017) </a>.<br>
-`Execute_ssGSEA_parallel`: ssGSEA is a widely used method based on Kolmogorov-Smirnov test <a href='#ref6'> (Barbie et al. 2009) </a>. <br>
-`Execute_JASMINE_parallel`: JASMINE is a recently developed method based on gene ranks  <a href='#ref7'> (Noreen et al. 2022) </a>.<br>
-`Execute_SCSE_parallel`: SCSE is another normalized sum-based method <a href='#ref8'> (Pont et al. 2019) </a>.<br>
+`nnPCA`: nnPCA is a nonnegative PCA based method <a href='#ref4'> (Panchy et al. 2021) </a>. It is preferred because of its high efficiency and the capacity of generating muliple scores for a gene set.<br>
+`AUCell`: AUCell is a method based on area under the curve for gene ranks <a href='#ref5'> (Aibar et al. 2017) </a>.<br>
+`ssGSEA`: ssGSEA is a widely used method based on Kolmogorov-Smirnov test <a href='#ref6'> (Barbie et al. 2009) </a>. <br>
+`JASMINE`: JASMINE is a recently developed method based on gene ranks  <a href='#ref7'> (Noreen et al. 2022) </a>.<br>
+`SCSE`: SCSE is another normalized sum-based method <a href='#ref8'> (Pont et al. 2019) </a>.<br>
 
+
+1. Calculate EMT scores with single EMT gene set
+```{r}
+nnPCA_Result_EMT <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "EMT")
+AUCell_Result_EMT <- Execute_AUCell(geneExp, gmt_file, score_names = "EMT")
+ssGSEA_Result_EMT <- Execute_ssGSVA(geneExp, gmt_file, score_names = "EMT")
+JASMINE_Result_EMT <- Execute_JAS(geneExp, gmt_file, score_names = "EMT")
+SCSE_Result_EMT <- Execute_SCSE(geneExp, gmt_file, score_names = "EMT")
+```
+
+2. Calculate EMT scores with multiple EMT gene sets
 ```{r}
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, 'EM_signature.gmt', dimension = 1, cores = 2)
 AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, 'EM_signature.gmt', cores = 2)
@@ -207,34 +220,44 @@ Next, we demonstrate the analysis workflow using a separate single-cell RNA-seq 
 ## 3.1 Data Importing and Basic Calculations
 Users can import single-cell data either as Seurat objects (`RDS` format) or as SingleCellExperiment objects (`RDA` format). Gene sets can be provided using GMT files for input. Different scoring methods can be specified via the `method` argument. Calculated EMT scores can then be plotted against pseudotime to examine dynamic changes in epithelial–mesenchymal states.
 ```{r}
-obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
-files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
+#obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
+eh = ExperimentHub()
+query(eh , 'EMTscoreData')
+A549_TNF <- eh[['EH10291']]
+A549_EGF <- eh[['EH10292']]
+A549_TGFB1 <- eh[['EH10293']]
 gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "AUCell",nnPCA_dim = 1)
-p_AUCell <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-p_AUCell
+objects <- list(
+A549_TGFB1 = A549_TGFB1,
+A549_EGF   = A549_EGF,
+A549_TNF   = A549_TNF
+)
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "SCSE")
-p_SCSE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-p_SCSE
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "AUCell",nnPCA_dim = 1)
+#p_AUCell <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_AUCell
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
-p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-p_ssGSEA
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "SCSE")
+#p_SCSE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_SCSE
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "Seurat")
-p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-p_Seurat
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
+#p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_ssGSEA
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA")
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "Seurat")
+#p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_Seurat
+
+seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA")
 p_nnPCA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 p_nnPCA
 
-seurat_objs <- add_EMT_score(files, gmt_file = gmt, emt_name = "EMT_score", method = "JASMINE")
-p_JASMINE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
-p_JASMINE
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "JASMINE")
+#p_JASMINE <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_JASMINE
 ```
 
 
@@ -244,10 +267,10 @@ We can also map the existing annotations/clusters to these GMM states. This is p
 identify clusters that are extreme E/M states or intermediate EMT states.
 ```{r, message=FALSE}
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
-files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
+
 
 emt_name = c("Escore", "Mscore")
-result <- add_EMT_score_multiple(files, gmt_file, emt_name, method = "Seurat", nnPCA_dim = 1, cores = 10)
+result <- add_EMT_score_multiple(objects, gmt_file, emt_name, method = "nnPCA", nnPCA_dim = 1, cores = 10)
 
 #save into pdf format
 
@@ -321,10 +344,9 @@ plot_all_clusters(result, method = "GMM", emt_name)
 ## 3.3 Identifying Pathways Most Associated with the EMT Process
 To understand which signaling pathways are most strongly associated with the epithelial–mesenchymal transition (EMT) process, we can compute pathway activity scores for each sample and correlate them with EMT scores.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
-#SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp,'/home/hwen6/project/EMTscore/2025_10_29/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt', cores = 20)
-data(SCSE_Result_EMT)
-data(SCSE_Result_multiple)
-result <- correlate_sample_scores(score_mat1 = SCSE_Result_multiple, score_mat2 = SCSE_Result_EMT, method = "spearman")
+data(nnPCA_Result_EMT)
+data(nnPCA_Result_multiple)
+result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
 head(result)
 ```
 
@@ -353,8 +375,6 @@ In this section, we analyze single-cell RNA-seq datasets to compute stemness, se
 
 1. Compute stemness and senescence scores for each cell using predefined gene signatures:
 ```{r}
-files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
-
 #obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
 signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
@@ -362,7 +382,7 @@ signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package
 
 signature_files <- c(signature_file1, signature_file2)
 
-result <- compute_Signature_score_SingleCell(files, signature_files, score_name = c("Stemness_Score", "Senescence_Score"))
+result <- compute_Signature_score_SingleCell(objects, signature_files, score_name = c("Stemness_Score", "Senescence_Score"))
 head(result$A549_TGFB1@meta.data)
 ```
 
@@ -371,9 +391,7 @@ head(result$A549_TGFB1@meta.data)
 
 gmt_file = "EM_signature.gmt"
 
-files <- c("/home/hwen6/project/EMT/data/GSE147405Cook/A549_TGFB1.rds","/home/hwen6/project/EMT/data/GSE147405Cook/A549_TNF.rds", "/home/hwen6/project/EMT/data/GSE147405Cook/A549_EGF.rds")
-
-EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_name = c("Escore", "Mscore"),
                           method = "nnPCA",
                           nnPCA_dim = 1, cores = 2)
 

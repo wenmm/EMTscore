@@ -19,3 +19,8 @@ A data.frame ready for plotting.
 \description{
 Merge cell annotation and score result, and set rownames based on a user-specified column.
 }
+\examples{
+data(cell_annotation_file)
+data(nnPCA_Result_multiple)
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
+}

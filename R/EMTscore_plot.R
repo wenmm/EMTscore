@@ -7,6 +7,10 @@
 #' @param merge_colname Character, the column of cell_annotation_file to use as row names.
 #'
 #' @return A data.frame ready for plotting.
+#' @examples
+#' data(cell_annotation_file)
+#' data(nnPCA_Result_multiple)
+#' data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
 #' @export
 data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
   merge.all <- function(x, ..., by = "row.names") {
@@ -35,6 +39,16 @@ data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
 #'
 #' @return A ggplot object.
 #' @import ggplot2 dplyr rlang
+#' @examples
+#' data(data_for_plot)
+#' plot <- Execute_E_M_plot(
+#' data_for_plot,
+#' E_colname = "Panchy_et_al_E_signature",
+#' M_colname = "Panchy_et_al_M_signature",
+#' celltype_colname = "celltype_annotation",
+#' colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+#' "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+#' )
 #' @export
 Execute_E_M_plot <- function(data_for_plot, 
                              E_colname = "Panchy_et_al_E_signature", 
@@ -104,6 +118,16 @@ Execute_E_M_plot <- function(data_for_plot,
 #' @param colors Vector of colors for cell types.
 #' @import ggplot2 dplyr rlang
 #' @return A ggplot object.
+#' @examples
+#' plot2 <- Execute_M_dimension_plot(
+#' data_for_plot,
+#' M1_colname = "M1_score",
+#' M2_colname = "M2_score",
+#' celltype_colname = "celltype_annotation",
+#' colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+#'           "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+#' )
+#' 
 #' @export
 Execute_M_dimension_plot <- function(data_for_plot, 
                                      M1_colname, 

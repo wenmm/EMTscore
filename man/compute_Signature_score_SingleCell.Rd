@@ -2,12 +2,12 @@
 % Please edit documentation in R/Calculate_Signature_score.R
 \name{compute_Signature_score_SingleCell}
 \alias{compute_Signature_score_SingleCell}
-\title{Compute Multiple Signature Scores for Single-Cell Seurat Objects}
+\title{Compute Multiple Signature Scores for Single-Cell Objects}
 \usage{
-compute_Signature_score_SingleCell(seurat_files, signature_files, score_names)
+compute_Signature_score_SingleCell(objects, signature_files, score_names)
 }
 \arguments{
-\item{seurat_files}{A character vector of paths to Seurat object `.rds` files.
+\item{objects}{A named list of Seurat or SingleCellExperiment objects
 Each file will be read, updated, and annotated with computed signature scores.}
 
 \item{signature_files}{A character vector of paths to signature weight files 
@@ -23,7 +23,7 @@ to the computed signature scores.
 }
 \description{
 This function calculates one or more gene signature scores for single-cell datasets 
-stored as Seurat objects. Each score is computed using Spearman correlation 
+stored as Seurat or SingleCellExperiment (SCE) objects. Each score is computed using Spearman correlation 
 between gene expression profiles and signature weights, followed by min-max normalization.
 The resulting scores are added to the Seurat object metadata.
 }
@@ -35,7 +35,8 @@ object metadata under the specified names.
 }
 \examples{
 obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
-files <- c(obj)
+obj1 <- readRDS(obj)
+files <- c(test = obj1)
 signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 signature_files <- c(signature_file1, signature_file2)

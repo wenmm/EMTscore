@@ -40,7 +40,9 @@ Imports:
     patchwork,
     slingshot,
     mclust,
-    Cairo
+    Cairo,
+    ExperimentHub,
+    SummarizedExperiment
 Suggests:
     testthat,
     knitr,

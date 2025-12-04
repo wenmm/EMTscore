@@ -155,26 +155,31 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
     } else if (method == "nnPCA") {
       
       r <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = nnPCA_dim, cores = cores)
+      colnames(r) <- emt_names
       obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "AUCell") {
       
       r <- Execute_AUCell_parallel(geneExp, gmt_file, cores = cores)
+      colnames(r) <- emt_names
       obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "ssGSEA") {
       
       r <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = cores)
+      colnames(r) <- emt_names
       obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "SCSE") {
       
       r <- Execute_SCSE_parallel(geneExp, gmt_file, cores = cores)
+      colnames(r) <- emt_names
       obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
       
     } else if (method == "JASMINE") {
       
       r <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = cores)
+      colnames(r) <- emt_names
       obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
     }
     

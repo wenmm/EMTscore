@@ -14,6 +14,7 @@ vignette: >
 # Load required libraries
 library(nsprcomp)
 library(ggplot2)
+library(ggtext)
 library(dplyr)
 library(gridExtra)
 library(curl)
@@ -157,6 +158,39 @@ colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
 plot1
 ```
 
+To comprehensively compare EMT scoring across different computational methods, we generated E–M scatter plots for all methods, including nnPCA, AUCell, ssGSEA, JASMINE, and SCSE. For each method, samples are projected onto the E (epithelial) and M (mesenchymal) score space, and annotations are overlaid to reveal group-level patterns. The main title of each plot indicates the corresponding method.
+```{r}
+method_list <- list(
+  nnPCA = nnPCA_Result_multiple,
+  AUCell = AUCell_Result_multiple,
+  ssGSEA = ssGSEA_Result_multiple,
+  JASMINE = JASMINE_Result_multiple,
+  SCSE = SCSE_Result_multiple
+)
+
+plot_list <- lapply(names(method_list), function(method_name) {
+  data_for_plot <- data_prepare(
+    cell_annotation_file,
+    method_list[[method_name]],
+    merge_colname = "name"
+  )
+  p <- Execute_E_M_plot(
+    data_for_plot,
+    E_colname = "Panchy_et_al_E_signature",
+    M_colname = "Panchy_et_al_M_signature",
+    celltype_colname = "celltype_annotation",
+    colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+               "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8",
+               "#F29D9E", "#92AAE6")
+  )
+  p + ggtitle(method_name)  # 自动添加方法名称作为主标题
+})
+
+names(plot_list) <- names(method_list)
+combined_plot <- Arrange_plots(plot_list, ncol_per_row = 3)
+combined_plot
+```
+
 ## 2.8 dimension 1 M score vs dimension 2 M score Plot
 One useful application of nnPCA-based EMT scores is to examine the potential divergence among M genes. To explore this, we extract the data projected onto multiple principal components, allowing us to capture the main axes of variation within the mesenchymal gene set. We then visualize the samples in this reduced-dimensional space, which helps reveal patterns of heterogeneity, potential subpopulations, or outlier behaviors that may be masked in the full gene expression matrix. This approach provides a more nuanced understanding of EMT dynamics and highlights subtle differences in mesenchymal programs across samples.
 ```{r}
@@ -188,7 +222,7 @@ ncol_per_row = 2,
 subtitles = c("E vs M", "M1 vs M2"),
 fig_title = "Panchy_et_al"
 )
-combined_plot
+print(combined_plot)
 ```
 
 ## 2.10 E/M Score Distributions
@@ -269,8 +303,8 @@ identify clusters that are extreme E/M states or intermediate EMT states.
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 
 
-emt_name = c("Escore", "Mscore")
-result <- add_EMT_score_multiple(objects, gmt_file, emt_name, method = "nnPCA", nnPCA_dim = 1, cores = 10)
+emt_names = c("Escore", "Mscore")
+result <- add_EMT_score_multiple(objects, gmt_file, emt_names, method = "nnPCA", nnPCA_dim = 1, cores = 10)
 
 #save into pdf format
 
@@ -302,6 +336,7 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
     
     # Save scatter plot
     scatter_file <- paste0(name, "_EM_", tolower(method), ".pdf")
+    print(p1)
     ggsave(scatter_file, plot = p1, width = 6, height = 5)
     message("Sved scatter plot: ", scatter_file)
     
@@ -327,6 +362,7 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
     
     # Save Sankey plot
     sankey_file <- paste0(name, "_EM_Sankey_Diagram_", tolower(method), ".pdf")
+    print(p2)
     ggsave(sankey_file, plot = p2, width = 7, height = 5)
     message("Saved Sankey plot: ", sankey_file)
   }
@@ -345,9 +381,79 @@ plot_all_clusters(result, method = "GMM", emt_name)
 To understand which signaling pathways are most strongly associated with the epithelial–mesenchymal transition (EMT) process, we can compute pathway activity scores for each sample and correlate them with EMT scores.
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 data(nnPCA_Result_EMT)
-data(nnPCA_Result_multiple)
+#data(nnPCA_Result_multiple)
+gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
 result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
 head(result)
+```
+1. Visualizing the Top 10 Positively Correlated Pathways
+
+To highlight the pathways most strongly associated with the target EMT score, we extracted the top 10 positively correlated pathways from the correlation results. A horizontal bar chart was generated using `ggplot2`, which provides clear visualization of pathway names and allows straightforward comparison of correlation strengths across pathways.
+
+This plot offers an intuitive summary of the biological processes showing the strongest positive association with the EMT score, enabling users to quickly identify pathways that may play key roles in the underlying biological context.
+```{r}
+df_top10 <- result %>% 
+  slice(1:10)
+
+df_top10$Pathway <- factor(df_top10$Pathway_in_score_mat1, 
+                           levels = df_top10$Pathway_in_score_mat1)
+
+ggplot(df_top10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
+  geom_col(fill = "#84C7B9", width = 0.8) +
+  geom_richtext(
+    aes(label = Pathway, y = 0),  
+    hjust = 0,                    
+    fill = NA,
+    label.color = NA,
+    colour = "white",
+    fontface = "bold",
+    size = 4.5,
+    label.padding = unit(0.15, "lines"),
+    background_colour = "black"
+  ) +
+  coord_flip() +
+  labs(title = "Top 10 Positive Correlated Pathways", x = "Pathways", y = "Correlation") +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
+
+```
+
+
+2. Visualizing the Top 10 Negatively Correlated Pathways
+To identify pathways that show strong inverse associations with the EMT score, we also selected the top 10 pathways exhibiting the most negative correlation values.
+```{r}
+sig_result <- subset(result, P_value < 0.05)
+df_top_N10 <- head(sig_result[order(sig_result$Correlation), ], 10)
+
+df_top_N10$Pathway <- factor(df_top_N10$Pathway_in_score_mat1, 
+                           levels = df_top_N10$Pathway_in_score_mat1)
+
+ggplot(df_top_N10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
+  geom_col(fill = "#84C7B9", width = 0.8) +
+  geom_richtext(
+    aes(label = Pathway, y = 0),  
+    hjust = 1,                     
+    fill = NA,
+    label.color = NA,
+    colour = "white",
+    fontface = "bold",
+    size = 4.5,
+    label.padding = unit(0.15, "lines"),
+    background_colour = "black"
+  ) +
+  coord_flip() +
+  labs(title = "Top 10 Negative Correlated Pathways", x = "Pathways", y = "Correlation") +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank()
+  )
 ```
 
 ## 3.4 Computing Additional Scores (e.g., Stemness and Senescence Scores)

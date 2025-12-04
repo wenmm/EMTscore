@@ -279,25 +279,37 @@ plot_heatmap_function <- function(geneExp,geneList_M)
   # Define color palettes using paletteer
   # This will set white as the minimum at the darker color as the max
   
-  expr_palette = "grDevices::RdBu"
+  expr_colors = colorRamp2(
+    c(0,5, 15), 
+    c("#2166AC", "white", "#c21f30")   
+  )
   pc1_palette = "ggthemes::Classic Blue"
   pc2_palette = "ggthemes::Red"
   m_pc1_palette = "ggthemes::Classic Green"
   m_pc2_palette = "ggthemes::Orange"
   label_palette = "ggsci::hallmarks_light_cosmic"
   
-  expr_colors <- paletteer::paletteer_c(expr_palette, n = 50)
-  pc1_colors <- colorRamp2(c(0, max(result_plot2$PC1, na.rm = TRUE)), 
-                           c("white", paletteer::paletteer_c(pc1_palette, n = 2, direction = -1)[1]))
-  pc2_colors <- colorRamp2(c(0, max(result_plot2$PC2, na.rm = TRUE)), 
-                           c("white", paletteer::paletteer_c(pc2_palette, n = 2, direction = -1)[1]))
+  #expr_colors <- paletteer::paletteer_c(expr_palette, n = 50)
+  pc1_max <- max(result_plot2$PC1, na.rm = TRUE)
+  
+  pc1_colors <- colorRamp2(
+    c(0, pc1_max),
+    c("white", "#2166AC")
+  )
+  
+  pc2_max <- max(result_plot2$PC2, na.rm = TRUE)
+  pc2_colors <- colorRamp2(
+    c(0, pc2_max),
+    c("white", "#c21f30")
+  )
+  
   m_pc1_colors <- colorRamp2(c(min(sorted_data_M$M_PC1_score), max(sorted_data_M$M_PC1_score)),
-                             c("white", paletteer::paletteer_c(m_pc1_palette, n = 2, direction = -1)[1]))
+                             c("white", "#322f3b"))
   m_pc2_colors <- colorRamp2(c(min(sorted_data_M$M_PC2_score), max(sorted_data_M$M_PC2_score)), 
-                             c("white", paletteer::paletteer_c(m_pc2_palette, n = 2, direction = -1)[1]))
+                             c("white", "#9b1e64"))
   
   # Categorical palette
-  label_colors <- paletteer::paletteer_d(label_palette, n = 2)
+  label_colors <- c("#2166AC","#c21f30")
   names(label_colors) <- c("M_PC1", "M_PC2")
   
   # Define annotations

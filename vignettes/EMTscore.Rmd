@@ -569,8 +569,8 @@ df2$cell <- rownames(df2)
 df <- df1 %>%
   select(cell, Stemness_Score, Senescence_Score, Time) %>%
   left_join(df2 %>% select(cell, 
-                           Panchy_et_al_E_signature, 
-                           Panchy_et_al_M_signature), by = "cell")
+                           Escore, 
+                           Mscore), by = "cell")
 
 # Automatically generate color palette for Time groups
 n_groups <- length(unique(df$Time))
@@ -578,7 +578,7 @@ palette_colors <- colorRampPalette(brewer.pal(8, "Set2"))(n_groups)
 
 # Define combinations to plot
 x_vars <- c("Stemness_Score", "Senescence_Score")
-y_vars <- c("Panchy_et_al_E_signature", "Panchy_et_al_M_signature")
+y_vars <- c("Escore", "Mscore")
 
 # Loop through all combinations
 for (x_var in x_vars) {

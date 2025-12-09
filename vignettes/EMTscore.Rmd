@@ -122,6 +122,7 @@ Gene set scores can be computed with one or more of the following methods:<br>
 
 1. Calculate EMT scores with single EMT gene set
 ```{r}
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 nnPCA_Result_EMT <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "EMT")
 AUCell_Result_EMT <- Execute_AUCell(geneExp, gmt_file, score_names = "EMT")
 ssGSEA_Result_EMT <- Execute_ssGSVA(geneExp, gmt_file, score_names = "EMT")
@@ -385,8 +386,10 @@ To understand which signaling pathways are most strongly associated with the epi
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 data(nnPCA_Result_EMT)
 #data(nnPCA_Result_multiple)
-ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
-gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+#ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
+ref_gmt <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/TianLab_collected_EMT_fignatures.gmt"
+gmt_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt"
+#gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
 
 filter_gmt_by_reference(
   ref_gmt           = ref_gmt,
@@ -396,8 +399,9 @@ filter_gmt_by_reference(
   keep_low_overlap  = TRUE
 )
 
-filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
-
+#filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
+filtered_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/filtered.c2.gmt"
+  
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 2)
 result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
 head(result)

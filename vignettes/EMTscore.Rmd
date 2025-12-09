@@ -266,7 +266,7 @@ gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.
 
 objects <- list(
 A549_TGFB1 = A549_TGFB1,
-#A549_EGF   = A549_EGF,
+#A549_EGF   = A549_EGF
 A549_TNF   = A549_TNF
 )
 
@@ -309,7 +309,7 @@ result <- add_EMT_score_multiple(objects, gmt_file, emt_names, method = "nnPCA",
 
 #save into pdf format
 
-plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_clusters = 3) {
+plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_names,  n_clusters = 3) {
   method <- match.arg(method)
   
   for (name in names(result)) {
@@ -317,7 +317,7 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
     obj <- result[[name]]
     
     # Extract E and M signature data
-    sig_df <- obj@meta.data[, emt_name, drop = FALSE]
+    sig_df <- obj@meta.data[, emt_names, drop = FALSE]
     colnames(sig_df) <- c("Escore", "Mscore")
     
     # Run clustering
@@ -376,7 +376,7 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
 
 #plot_all_clusters(result, method = "Kmeans", emt_name, n_clusters = 3)
 # or
-plot_all_clusters(result, method = "GMM", emt_name)
+plot_all_clusters(result, method = "GMM", emt_names)
 
 ```
 
@@ -386,10 +386,10 @@ To understand which signaling pathways are most strongly associated with the epi
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 data(nnPCA_Result_EMT)
 #data(nnPCA_Result_multiple)
-#ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
-ref_gmt <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/TianLab_collected_EMT_fignatures.gmt"
-gmt_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt"
-#gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
+#ref_gmt <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/TianLab_collected_EMT_fignatures.gmt"
+#gmt_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/c2.all.v2025.1.Hs.symbols.gmt"
+gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
 
 filter_gmt_by_reference(
   ref_gmt           = ref_gmt,
@@ -399,8 +399,8 @@ filter_gmt_by_reference(
   keep_low_overlap  = TRUE
 )
 
-#filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
-filtered_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/filtered.c2.gmt"
+filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
+#filtered_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/filtered.c2.gmt"
   
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 2)
 result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
@@ -412,8 +412,7 @@ To highlight the pathways most strongly associated with the target EMT score, we
 
 This plot offers an intuitive summary of the biological processes showing the strongest positive association with the EMT score, enabling users to quickly identify pathways that may play key roles in the underlying biological context.
 ```{r}
-df_top10 <- result %>% 
-  slice(1:10)
+df_top10 <- head(result, 10)
 
 df_top10$Pathway <- factor(df_top10$Pathway_in_score_mat1, 
                            levels = df_top10$Pathway_in_score_mat1)
@@ -517,7 +516,7 @@ head(result$A549_TGFB1@meta.data)
 
 gmt_file = "EM_signature.gmt"
 
-EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_name = c("Escore", "Mscore"),
+EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_names = c("Escore", "Mscore"),
                           method = "nnPCA",
                           nnPCA_dim = 1, cores = 2)
 

@@ -253,19 +253,19 @@ Next, we demonstrate the analysis workflow using a separate single-cell RNA-seq 
 
 ## 3.1 Data Importing and Basic Calculations
 Users can import single-cell data either as Seurat objects (`RDS` format) or as SingleCellExperiment objects (`RDA` format). Gene sets can be provided using GMT files for input. Different scoring methods can be specified via the `method` argument. Calculated EMT scores can then be plotted against pseudotime to examine dynamic changes in epithelial–mesenchymal states.
-```{r}
+```{r, message=FALSE}
 #obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
 eh = ExperimentHub()
 query(eh , 'EMTscoreData')
 A549_TNF <- eh[['EH10291']]
-A549_EGF <- eh[['EH10292']]
+#A549_EGF <- eh[['EH10292']]
 A549_TGFB1 <- eh[['EH10293']]
 gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 
 objects <- list(
 A549_TGFB1 = A549_TGFB1,
-A549_EGF   = A549_EGF,
+#A549_EGF   = A549_EGF,
 A549_TNF   = A549_TNF
 )
 
@@ -350,6 +350,10 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
       summarise(Freq = n(), .groups = "drop")
     
     # Sankey plot
+    df_count$TrueLabel <- factor(
+      df_count$TrueLabel,
+      levels = c("0d", "8h", "1d", "3d", "7d", "8h_rm", "1d_rm", "3d_rm")
+      )
     p2 <- ggplot(df_count, aes(axis1 = Cluster, axis2 = TrueLabel, y = Freq)) +
       geom_alluvium(aes(fill = Cluster), width = 1/12) +
       geom_stratum(width = 1/8, fill = "grey90", color = "black") +
@@ -360,7 +364,6 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
       labs(title = paste("Sankey Diagram:", method, "Cluster vs True Cell Labels -", name),
            y = "Number of Cells", x = "")
     
-    # Save Sankey plot
     sankey_file <- paste0(name, "_EM_Sankey_Diagram_", tolower(method), ".pdf")
     print(p2)
     ggsave(sankey_file, plot = p2, width = 7, height = 5)
@@ -370,7 +373,7 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_name,  n_c
   message("All plots successfully generated and saved.")
 }
 
-plot_all_clusters(result, method = "Kmeans", emt_name, n_clusters = 3)
+#plot_all_clusters(result, method = "Kmeans", emt_name, n_clusters = 3)
 # or
 plot_all_clusters(result, method = "GMM", emt_name)
 
@@ -382,12 +385,24 @@ To understand which signaling pathways are most strongly associated with the epi
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 data(nnPCA_Result_EMT)
 #data(nnPCA_Result_multiple)
+ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
 gmt_file <- system.file("extdata", "c2.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
+
+filter_gmt_by_reference(
+  ref_gmt           = ref_gmt,
+  target_gmt        = gmt_file,
+  output_gmt        = "filtered.c2.gmt",
+  cutoff            = 0.3,           # try 0.2–0.3 first
+  keep_low_overlap  = TRUE
+)
+
+filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
+
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 2)
 result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
 head(result)
 ```
-1. Visualizing the Top 10 Positively Correlated Pathways
+### 1. Visualizing the Top 10 Positively Correlated Pathways
 
 To highlight the pathways most strongly associated with the target EMT score, we extracted the top 10 positively correlated pathways from the correlation results. A horizontal bar chart was generated using `ggplot2`, which provides clear visualization of pathway names and allows straightforward comparison of correlation strengths across pathways.
 
@@ -424,7 +439,8 @@ ggplot(df_top10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
 ```
 
 
-2. Visualizing the Top 10 Negatively Correlated Pathways
+### 2. Visualizing the Top 10 Negatively Correlated Pathways
+
 To identify pathways that show strong inverse associations with the EMT score, we also selected the top 10 pathways exhibiting the most negative correlation values.
 ```{r}
 sig_result <- subset(result, P_value < 0.05)
@@ -461,14 +477,14 @@ In addition to EMT scores, we can compute other relevant biological scores to fu
 
 Here, we use the `compute_Signature_score` function to calculate scores for each sample based on predefined gene signatures:
 
-1. Stemness score: Calculated using the `stemsig.tsv` gene signature file, reflecting cellular pluripotency or stem-like characteristics.
+### 1. Stemness score: Calculated using the `stemsig.tsv` gene signature file, reflecting cellular pluripotency or stem-like characteristics.
 ```{r}
 signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file , score_name = "stemness_score")
 head(scores)
 ```
 
-2. Senescence score: Calculated using the `cellular_senescence_sig.tsv` gene signature file, reflecting the cellular aging state.
+### 2. Senescence score: Calculated using the `cellular_senescence_sig.tsv` gene signature file, reflecting the cellular aging state.
 ```{r}
 signature_file <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file, score_name = "senescence_score")
@@ -479,7 +495,7 @@ These scores can be used alongside EMT scores for downstream analyses, such as c
 ## 3.5 Exploring the Relationship Between Stemness, Senescence, and EMT Scores in Single-Cell Data
 In this section, we analyze single-cell RNA-seq datasets to compute stemness, senescence and EMT scores for individual cells and investigate their relationship. We first load multiple single-cell datasets and compute the scores using predefined gene signatures:
 
-1. Compute stemness and senescence scores for each cell using predefined gene signatures:
+### 1. Compute stemness and senescence scores for each cell using predefined gene signatures:
 ```{r}
 #obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
@@ -492,7 +508,7 @@ result <- compute_Signature_score_SingleCell(objects, signature_files, score_nam
 head(result$A549_TGFB1@meta.data)
 ```
 
-2. Compute EMT Scores:
+### 2. Compute EMT Scores:
 ```{r}
 
 gmt_file = "EM_signature.gmt"
@@ -504,7 +520,24 @@ EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_name = c("Escore"
 head(EMscore_result$A549_TGFB1@meta.data)
 ```
 
-3. Examine Correlation Between Stemness and Senescence:
+#### E vs M scatter plot
+
+```{r}
+
+df <- EMscore_result$A549_TGFB1@meta.data
+plot1 <- Execute_E_M_plot(
+df,
+E_colname = "Escore",
+M_colname = "Mscore",
+celltype_colname = "Time",
+colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+"#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+)
+plot1
+```
+
+
+### 3. Examine Correlation Between Stemness and Senescence:
 ```{r}
 df <- result$A549_TGFB1@meta.data
 cor_test <- cor.test(df$Senescence_Score, df$Stemness_Score, method = "pearson")
@@ -540,7 +573,7 @@ ggplot(df, aes(x = Senescence_Score, y = Stemness_Score, color = Time)) +
 # 5.25 3.84
 ```
 
-4. Integration and Visualization of Stemness, Senescence, and EMT Scores
+### 4. Integration and Visualization of Stemness, Senescence, and EMT Scores
 In this section, we integrate stemness, senescence, and EMT scores at the single-cell level to systematically explore their relationships. By merging the computed scores for each cell, we can visualize how stemness and senescence individually correlate with the epithelial (E) and mesenchymal (M) components of EMT.
 
 Specifically, we:

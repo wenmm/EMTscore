@@ -259,15 +259,15 @@ Users can import single-cell data either as Seurat objects (`RDS` format) or as 
 #files <- c(obj)
 eh = ExperimentHub()
 query(eh , 'EMTscoreData')
-A549_TNF <- eh[['EH10291']]
-#A549_EGF <- eh[['EH10292']]
+#A549_TNF <- eh[['EH10291']]
+A549_EGF <- eh[['EH10292']]
 A549_TGFB1 <- eh[['EH10293']]
 gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 
 objects <- list(
 A549_TGFB1 = A549_TGFB1,
-#A549_EGF   = A549_EGF
-A549_TNF   = A549_TNF
+A549_EGF   = A549_EGF
+#A549_TNF   = A549_TNF
 )
 
 #seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "AUCell",nnPCA_dim = 1)
@@ -286,7 +286,7 @@ A549_TNF   = A549_TNF
 #p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 #p_Seurat
 
-seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA")
+seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
 p_nnPCA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 p_nnPCA
 

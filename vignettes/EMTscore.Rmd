@@ -403,7 +403,7 @@ filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
 #filtered_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/filtered.c2.gmt"
   
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 2)
-result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "spearman")
+result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "pearson")
 head(result)
 ```
 ### 1. Visualizing the Top 10 Positively Correlated Pathways

@@ -45,7 +45,7 @@ devtools::install_github("wenmm/EMTscore")
 ```
 
 ### Quick Start
-`[EMTscoreData](https://github.com/wenmm/EMTscoreData/tree/main)`: Provides curated EMT gene sets and reference data used by `EMTscore`
+[`EMTscoreData`](https://github.com/wenmm/EMTscoreData/tree/main): Provides curated EMT gene sets and reference data used by `EMTscore`
 ```{r}
 library(EMTscoreData)
 library(EMTscore)

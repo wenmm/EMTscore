@@ -34,7 +34,6 @@ Imports:
     curl,
     DoubletFinder,
     Matrix,
-    SeuratWrappers,
     data.table,
     monocle,
     patchwork,

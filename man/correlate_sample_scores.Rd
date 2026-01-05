@@ -37,8 +37,5 @@ and performs correlation analysis between every pair of numeric score columns.
 }
 \examples{
 # score_mat1: pathway scores per sample; score_mat2: EMT signature scores per sample
-data(SCSE_Result_EMT)
-data(SCSE_Result_multiple)
-result <- correlate_sample_scores(score_mat1 = SCSE_Result_multiple, score_mat2 = SCSE_Result_EMT, method = "spearman")
-
+NULL
 }

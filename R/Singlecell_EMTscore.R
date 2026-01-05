@@ -14,7 +14,7 @@
 #'   \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.
 #' @param nnPCA_dim Integer. Dimension for nnPCA (default = 1).
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 DoubletFinder monocle Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with a new metadata column containing EMT scores.
 #' 
 #' @examples
@@ -52,7 +52,7 @@ add_EMT_score <- function(objects,
     obj <- UpdateSeuratObject(obj)
     
     # get gene expression matrix
-    geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+    geneExp <- GetAssayData(obj, assay = "RNA", layer = "data")
     
     if (method == "Seurat") {
       
@@ -62,7 +62,12 @@ add_EMT_score <- function(objects,
     } else if (method == "nnPCA") {
       
       r <- Execute_nnPCA(geneExp, gmt_file, dimension = nnPCA_dim, score_names = emt_name)
-      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
+      if (nnPCA_dim == 1) {
+        obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
+      }
+      else if (nnPCA_dim > 1) {
+        obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      }
       
     } else if (method == "AUCell") {
       
@@ -104,7 +109,7 @@ add_EMT_score <- function(objects,
 #' @param nnPCA_dim Integer. Dimension used in nnPCA.
 #' @param cores Integer. Number of CPU cores for parallel computation.
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 SeuratWrappers DoubletFinder monocle Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 DoubletFinder monocle Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with multiple EMT score columns added.
 #' @examples
 #' eh = ExperimentHub()
@@ -113,7 +118,7 @@ add_EMT_score <- function(objects,
 #' A549_TGFB1 <- eh[['EH10293']]
 #' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 #' objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
-#' EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+#' EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_names = c("Escore", "Mscore"),
 #' method = "nnPCA", nnPCA_dim = 1, cores = 2)
 #' 
 #' @export
@@ -139,7 +144,7 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
       stop("Object ", name, " is not a Seurat or SCE object.")
     
     obj <- UpdateSeuratObject(obj)
-    geneExp <- GetAssayData(obj, assay = "RNA", slot = "data")
+    geneExp <- GetAssayData(obj, assay = "RNA", layer = "data")
     
     if (method == "Seurat") {
       
@@ -156,31 +161,31 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
       
       r <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = nnPCA_dim, cores = cores)
       colnames(r) <- emt_names
-      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "AUCell") {
       
       r <- Execute_AUCell_parallel(geneExp, gmt_file, cores = cores)
       colnames(r) <- emt_names
-      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "ssGSEA") {
       
       r <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = cores)
       colnames(r) <- emt_names
-      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "SCSE") {
       
       r <- Execute_SCSE_parallel(geneExp, gmt_file, cores = cores)
       colnames(r) <- emt_names
-      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "JASMINE") {
       
       r <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = cores)
       colnames(r) <- emt_names
-      obj@meta.data <- cbind(obj@meta.data, r[rownames(obj@meta.data), ])
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
     }
     
     return(obj)

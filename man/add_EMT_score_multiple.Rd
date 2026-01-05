@@ -39,7 +39,7 @@ A549_EGF <- eh[['EH10292']]
 A549_TGFB1 <- eh[['EH10293']]
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
-EMscore_result <- add_EMT_score_multiple(files, gmt_file,emt_name = c("Escore", "Mscore"),
+EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_names = c("Escore", "Mscore"),
 method = "nnPCA", nnPCA_dim = 1, cores = 2)
 
 }

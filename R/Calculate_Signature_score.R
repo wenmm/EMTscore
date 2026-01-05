@@ -27,7 +27,7 @@ compute_Signature_score <- function(data, signature_file, score_name) {
   
   if (inherits(data, "Seurat")) {
     # ----- Seurat object -----
-    expr_mat <- Seurat::GetAssayData(data, assay = "RNA", slot = "data")
+    expr_mat <- Seurat::GetAssayData(data, assay = "RNA", layer = "data")
     w <- w[rownames(expr_mat)]
     
     s <- apply(expr_mat, 2, function(z) cor(z, w, method = "sp", use = "complete.obs"))
@@ -141,7 +141,7 @@ compute_Signature_score_SingleCell <- function(objects, signature_files, score_n
     obj <- UpdateSeuratObject(obj)
     
     # 4. Extract expression exactly like your code
-    geneExp <- Seurat::GetAssayData(obj, assay = "RNA", slot = "data")
+    geneExp <- Seurat::GetAssayData(obj, assay = "RNA", layer = "data")
     
     # 5. Compute scores for each signature
     for (i in seq_along(weights_list)) {

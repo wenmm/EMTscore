@@ -3,7 +3,7 @@
 An integrated R package for comprehensive quantification and analysis of 
 Epithelial-Mesenchymal Transition (EMT) scores from single-cell and bulk omics data.
 
-![EMTscore Framework](bitmap.png)
+![EMTscore Framework](Figure1.png)
 
 ### Overview
 Epithelial-Mesenchymal Transition (EMT) is a key cellular plasticity process involved in development, cancer progression, fibrosis, and more. Partial EMT states are increasingly recognized as critical in many biological contexts.

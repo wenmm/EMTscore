@@ -338,9 +338,9 @@ plot_all_clusters <- function(result, method = c("Kmeans", "GMM"),emt_names,  n_
     
     # Run clustering
     if (method == "GMM") {
-      cl <- predict_cluster_labels(sig_df, method = "GMM", n_clusters = n_clusters, PC_name = c("Escore", "Mscore"))
+      cl <- predict_cluster_labels(sig_df, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore"))
     } else if (method == "Kmeans") {
-      cl <- predict_cluster_labels(sig_df, method = "Kmeans", n_clusters = n_clusters, PC_name = c("Escore", "Mscore"))
+      cl <- predict_cluster_labels(sig_df, method = "Kmeans", n_clusters = 3, PC_name = c("Escore", "Mscore"))
     }
     
     # Scatter plot data

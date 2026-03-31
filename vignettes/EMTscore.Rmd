@@ -533,6 +533,7 @@ These scores can be used alongside EMT scores for downstream analyses, such as c
 
 ## 3.5 Exploring the Relationship Between Stemness, Senescence, and EMT Scores in Single-Cell Data
 In this section, we analyze single-cell RNA-seq datasets to compute stemness, senescence and EMT scores for individual cells and investigate their relationship. We first load multiple single-cell datasets and compute the scores using predefined gene signatures:
+The stemness signature (`stemsig.tsv`) was obtained from <a href='#ref_9'> (Jing et al. 2025) </a>.<br> and the cellular senescence signature (`cellular_senescence_sig.tsv`) was derived from <a href='#ref_10'> (Malta T. 2018) </a>.<br>.
 
 ### 1. Compute stemness and senescence scores for each cell using predefined gene signatures:
 ```{r}
@@ -774,3 +775,7 @@ Epithelial–mesenchymal transition spectrum quantification and its efficacy in 
 <h6 id='ref8'> Pont F., Tosolini M., Fournié J.J.. Single-Cell Signature Explorer for comprehensive visualization of single cell signatures across scRNA-seq datasets. Nucleic Acids Res. 2019; 47:e133. </h6>
 
 <h6 id="refCook2020"> Cook DP, Vanderhyden BC. Context specificity of the EMT transcriptional response. Nat Commun. 2020 May 1;11(1):2142. </h6>
+
+<h6 id="ref9"> Wang, J., Zhou, X., Yu, P. et al. A transcriptome-based human universal senescence index (hUSI) robustly predicts cellular senescence under various conditions. Nat Aging. 2025 5, 1159–1175. </h6>
+
+<h6 id="ref10"> Malta T, Sokolov A, Gentles A. Machine Learning Identifies Stemness Features Associated with Oncogenic Dedifferentiation. Cell. 2018 173, 338-354.e15. </h6>

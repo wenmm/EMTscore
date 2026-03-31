@@ -1,7 +1,7 @@
 #' Compute ssGSEA Scores for Multiple Gene Sets in Parallel
 #'
 #' This function calculates ssGSEA scores for gene sets defined in a GMT file
-#' using the GSVA package. Parallel processing is used to speed up computation across pathways.
+#' using the ssGSEA package. Parallel processing is used to speed up computation across pathways.
 #'
 #' @param exprMatrix Numeric matrix of gene expression, rows are genes, columns are samples.
 #' @param gmt_file Character string. Path to the GMT file containing gene sets.
@@ -12,7 +12,7 @@
 #' @import GSVA GSA foreach doParallel stringr curl
 #'
 #' @examples
-#' url <- "https://zenodo.org/records/17438655/files/geneExp.rda"
+#' url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
 #' destfile <- tempfile(fileext = ".rda")
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
@@ -28,14 +28,14 @@ Execute_ssGSEA_parallel <- function(exprMatrix, gmt_file, cores) {
   GSsize <- length(Genesets$genesets)
   
   #----------- Wrapper for one gene set -----------#
-  Compute_GSVA <- function(exprMatrix, Genesets, k) {
+  Compute_ssGSEA <- function(exprMatrix, Genesets, k) {
     geneslist <- unlist(Genesets$genesets[k])
     pathwayName <- Genesets$geneset.names[k]
     
     gsva_geneSets <- GSEABase::GeneSetCollection(
       GSEABase::GeneSet(geneslist, setName = pathwayName)
     )
-    gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
+    gsvaPar <- GSVA::ssgseaParam(exprMatrix, geneSets = gsva_geneSets)
     res <- tryCatch({
       Result <- gsva(gsvaPar, verbose = FALSE)
       Result <- data.frame(Result)
@@ -48,17 +48,17 @@ Execute_ssGSEA_parallel <- function(exprMatrix, gmt_file, cores) {
   }
   
   #----------- Parallel computation -----------#
-  Combine_GSVA <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
-    Compute_GSVA(exprMatrix, Genesets, k)
+  Combine_ssGSEA <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
+    Compute_ssGSEA(exprMatrix, Genesets, k)
   }
   
   # Remove empty rows if any
-  if (nrow(Combine_GSVA) == 0) {
+  if (nrow(Combine_ssGSEA) == 0) {
     message("NULL result")
   } else {
-    Combine_GSVA <- Combine_GSVA[rowSums(is.na(Combine_GSVA)) != ncol(Combine_GSVA), ]
+    Combine_ssGSEA <- Combine_ssGSEA[rowSums(is.na(Combine_ssGSEA)) != ncol(Combine_ssGSEA), ]
   }
-  rownames(Combine_GSVA) <- Combine_GSVA$Pathway
-  Combine_GSVA$Pathway <- NULL
-  return(t(Combine_GSVA))
+  rownames(Combine_ssGSEA) <- Combine_ssGSEA$Pathway
+  Combine_ssGSEA$Pathway <- NULL
+  return(t(Combine_ssGSEA))
 }

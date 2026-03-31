@@ -8,7 +8,7 @@ add_EMT_score(
   objects,
   gmt_file,
   emt_name = "EMT_Score",
-  method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
+  method = c("Seurat", "nnPCA", "AUCell", "GSVA", "ssGSEA", "SCSE", "JASMINE"),
   nnPCA_dim = 1
 )
 }
@@ -21,7 +21,7 @@ that have already been loaded in the R session.}
 \item{emt_name}{Character string. Name of the EMT score column to add.}
 
 \item{method}{Character string. Scoring method to use. One of:
-\code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
+\code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},\code{"GSVA"},
 \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.}
 
 \item{nnPCA_dim}{Integer. Dimension for nnPCA (default = 1).}
@@ -33,7 +33,7 @@ A named list of Seurat objects with a new metadata column containing EMT scores.
 This function calculates epithelial–mesenchymal transition (EMT) scores
 for one or more single-cell objects using multiple scoring methods.
 Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
-\code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+\code{"GSVA"}, \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }
 \examples{
 eh = ExperimentHub()

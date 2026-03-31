@@ -23,7 +23,7 @@ This function reads a GMT gene set file and performs non-negative sparse PCA (nn
 for each gene set in parallel, returning a combined data frame of pathway scores.
 }
 \examples{
-url <- "https://zenodo.org/records/17438655/files/geneExp.rda"
+url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
 destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
 load(destfile)

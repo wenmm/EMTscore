@@ -2,7 +2,11 @@
 title: "EMTscore Analysis and Plots"
 author: "haimei wen"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  html_document:
+    toc: true
+    theme: united
+mainfont: Arial
 vignette: >
   %\VignetteIndexEntry{EMT Score Vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -10,7 +14,7 @@ vignette: >
 ---
 
 ```{r}
-load("/home/hwen/project/EMTscore/EMTscore_rmd.RData")
+#load("/home/hwen/project/EMTscore/EMTscore_rmd.RData")
 ```
 
 ```{r setup, include=FALSE}
@@ -31,7 +35,7 @@ library(ComplexHeatmap)
 library(EMTscore)
 library(AUCell)
 library(DoubletFinder)
-library(SeuratWrappers)
+#library(SeuratWrappers)
 library(monocle)
 library(slingshot)
 library(Seurat)
@@ -39,7 +43,7 @@ library(GSA)
 library(mclust)
 library(ggalluvial)
 library(RColorBrewer)
-library(hrbrthemes)
+#library(hrbrthemes)
 library(Cairo)
 library(ExperimentHub)
 library(SummarizedExperiment)
@@ -82,7 +86,7 @@ data(cell_annotation_file)
 head(cell_annotation_file)
 ```
 
-# Download gene expression data
+## 2.2 Download gene expression data
 Here we provide an example bulk gene expression matrix file from <a href="#refGroves2023">Groves et al. 2023</a>. The resulting dataset contains 120 samples and 15,950 genes, with row names representing cell names and column names representing gene symbols.
 ```{r}
 url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
@@ -119,27 +123,31 @@ Gene set scores can be computed with one or more of the following methods:<br>
 `nnPCA`: nnPCA is a nonnegative PCA based method <a href='#ref4'> (Panchy et al. 2021) </a>. It is preferred because of its high efficiency and the capacity of generating muliple scores for a gene set.<br>
 `AUCell`: AUCell is a method based on area under the curve for gene ranks <a href='#ref5'> (Aibar et al. 2017) </a>.<br>
 `ssGSEA`: ssGSEA is a widely used method based on Kolmogorov-Smirnov test <a href='#ref6'> (Barbie et al. 2009) </a>. <br>
+`GSVA`: GSVA is a method that estimates variation of gene set activity over a sample population in an unsupervised manner <a href='#ref_GSVA'> (Hänzelmann et al. 2013) </a>.<br>
 `JASMINE`: JASMINE is a recently developed method based on gene ranks  <a href='#ref7'> (Noreen et al. 2022) </a>.<br>
 `SCSE`: SCSE is another normalized sum-based method <a href='#ref8'> (Pont et al. 2019) </a>.<br>
 
 
 1. Calculate EMT scores with single EMT gene set
 ```{r}
-gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 nnPCA_Result_EMT <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "EMT")
 AUCell_Result_EMT <- Execute_AUCell(geneExp, gmt_file, score_names = "EMT")
-ssGSEA_Result_EMT <- Execute_ssGSVA(geneExp, gmt_file, score_names = "EMT")
+GSVA_Result_EMT <- Execute_GSVA(geneExp, gmt_file, score_names = "EMT")
+ssGSEA_Result_EMT <- Execute_ssGSEA(geneExp, gmt_file, score_names = "EMT")
 JASMINE_Result_EMT <- Execute_JAS(geneExp, gmt_file, score_names = "EMT")
 SCSE_Result_EMT <- Execute_SCSE(geneExp, gmt_file, score_names = "EMT")
 ```
 
 2. Calculate EMT scores with multiple EMT gene sets
 ```{r}
-nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, 'EM_signature.gmt', dimension = 1, cores = 2)
-AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, 'EM_signature.gmt', cores = 2)
-ssGSEA_Result_multiple <- Execute_ssGSEA_parallel(geneExp, 'EM_signature.gmt', cores = 2)
-JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, 'EM_signature.gmt', cores = 2)
-SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, 'EM_signature.gmt', cores = 2)
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
+AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 2)
+ssGSEA_Result_multiple <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = 2)
+GSVA_Result_multiple <- Execute_GSVA_parallel(geneExp, gmt_file, cores = 2)
+JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 2)
+SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 2)
 ```
 
 ## 2.6 Prepare Data for Plotting
@@ -168,6 +176,7 @@ method_list <- list(
   nnPCA = nnPCA_Result_multiple,
   AUCell = AUCell_Result_multiple,
   ssGSEA = ssGSEA_Result_multiple,
+  GSVA = GSVA_Result_multiple,
   JASMINE = JASMINE_Result_multiple,
   SCSE = SCSE_Result_multiple
 )
@@ -238,7 +247,7 @@ p_hist <- data_for_plot %>%
      ggplot( aes(x=M1_score, fill=celltype_annotation)) +
      geom_histogram(alpha=0.6, position = 'identity') +
      scale_fill_manual(values=colors) +
-     theme_ipsum() +
+     theme_classic() +
      labs(fill="")
 p_hist
 ```
@@ -284,6 +293,10 @@ A549_EGF   = A549_EGF
 #seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "ssGSEA")
 #p_ssGSEA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 #p_ssGSEA
+
+#seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "GSVA")
+#p_GSVA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
+#p_GSVA
 
 #seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "Seurat")
 #p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
@@ -433,8 +446,7 @@ ggplot(df_top10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
     fill = NA,
     label.color = NA,
     colour = "black",
-    fontface = "bold",
-    size = 2,
+    size = 5,
     label.padding = unit(0.15, "lines"),
     background_colour = "black"
   ) +
@@ -448,7 +460,10 @@ ggplot(df_top10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
     axis.title.x = element_text(color = "black"),
     axis.title.y = element_text(color = "black"),
     axis.text.x  = element_text(color = "black")
-  )
+  )+ 
+  theme(axis.ticks.length.x = unit(0.15, 'cm'),
+           axis.ticks.length.y = unit(0.15, 'cm'),axis.title = element_text(size = 16),
+           axis.text  = element_text(size = 14))
   
 
 ```
@@ -476,8 +491,7 @@ ggplot(df_top_N10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
     fill = NA,
     label.color = NA,
     colour = "black",
-    fontface = "bold",
-    size = 2,
+    size = 5,
     label.padding = unit(0.15, "lines"),
     background_colour = "black"
   ) +
@@ -491,7 +505,10 @@ ggplot(df_top_N10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
     axis.title.x = element_text(color = "black"),
     axis.title.y = element_text(color = "black"),
     axis.text.x  = element_text(color = "black")
-  )
+  ) + 
+  theme(axis.ticks.length.x = unit(0.15, 'cm'),
+           axis.ticks.length.y = unit(0.15, 'cm'),axis.title = element_text(size = 16),
+           axis.text  = element_text(size = 14))
 ```
 
 ## 3.4 Computing Additional Scores (e.g., Stemness and Senescence Scores)
@@ -541,7 +558,7 @@ EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_names = c("Escore
 
 head(EMscore_result$A549_TGFB1@meta.data)
 
-gmt_file <- system.file("extdata", "M_signature.gmt", package = "EMTscore")
+gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 
 Mscore_result <- add_EMT_score(objects, gmt_file,emt_name = c("Mscore_PC1", "Mscore_PC2"),
                           method = "nnPCA",
@@ -747,6 +764,8 @@ Epithelial–mesenchymal transition spectrum quantification and its efficacy in 
 <h6 id='ref4'> Panchy, N., Watanabe, K., & Hong, T. (2021). Interpretable, scalable, and transferrable functional projection of large-scale transcriptome data using constrained matrix decomposition. Frontiers in Genetics, 12, 719099. </h6>
 
 <h6 id='ref5'> Aibar, S., González-Blas, C. B., Moerman, T., Huynh-Thu, V. A., Imrichova, H., Hulselmans, G., ... & Aerts, S. (2017). SCENIC: single-cell regulatory network inference and clustering. Nature methods, 14(11), 1083-1086.</h6>
+
+<h6 id='ref_GSVA'> Hänzelmann, S., Castelo, R., & Guinney, J. (2013). GSVA: gene set variation analysis for microarray and RNA-seq data. BMC Bioinformatics, 14, 7.</h6>
 
 <h6 id='ref6'> Barbie D.A., Tamayo P., Boehm J.S., Kim S.Y., Moody S.E., Dunn I.F., Schinzel A.C., Sandy P., Meylan E., Scholl C.et al.. Systematic RNA interference reveals that oncogenic KRAS-driven cancers require TBK1. Nature. 2009; 462:108–112.  </h6>
 

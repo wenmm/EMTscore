@@ -3,18 +3,18 @@
 #' This function calculates epithelial–mesenchymal transition (EMT) scores
 #' for one or more single-cell objects using multiple scoring methods.
 #' Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
-#' \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+#' \code{"GSVA"}, \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 #'
 #' @param objects A named list of Seurat or SingleCellExperiment objects
 #'   that have already been loaded in the R session.
 #' @param gmt_file Character string. Path to a GMT file containing EMT gene sets.
 #' @param emt_name Character string. Name of the EMT score column to add.
 #' @param method Character string. Scoring method to use. One of:
-#'   \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
+#'   \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},\code{"GSVA"},
 #'   \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.
 #' @param nnPCA_dim Integer. Dimension for nnPCA (default = 1).
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 DoubletFinder monocle Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2 Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with a new metadata column containing EMT scores.
 #' 
 #' @examples
@@ -29,7 +29,7 @@
 add_EMT_score <- function(objects,
                           gmt_file,
                           emt_name = "EMT_Score",
-                          method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
+                          method = c("Seurat","nnPCA","AUCell","GSVA","ssGSEA","SCSE","JASMINE"),
                           nnPCA_dim = 1) {
   
   method <- match.arg(method)
@@ -76,7 +76,12 @@ add_EMT_score <- function(objects,
       
     } else if (method == "ssGSEA") {
       
-      r <- Execute_ssGSVA(geneExp, gmt_file, score_names = emt_name)
+      r <- Execute_ssGSEA(geneExp, gmt_file, score_names = emt_name)
+      obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
+      
+    } else if (method == "GSVA") {
+      
+      r <- Execute_GSVA(geneExp, gmt_file, score_names = emt_name)
       obj@meta.data[[emt_name]] <- r[rownames(obj@meta.data), emt_name]
       
     } else if (method == "SCSE") {
@@ -109,7 +114,7 @@ add_EMT_score <- function(objects,
 #' @param nnPCA_dim Integer. Dimension used in nnPCA.
 #' @param cores Integer. Number of CPU cores for parallel computation.
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2 DoubletFinder monocle Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2  monocle Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with multiple EMT score columns added.
 #' @examples
 #' eh = ExperimentHub()
@@ -122,8 +127,8 @@ add_EMT_score <- function(objects,
 #' method = "nnPCA", nnPCA_dim = 1, cores = 2)
 #' 
 #' @export
-add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
-                                   method = c("Seurat","nnPCA","AUCell","ssGSEA","SCSE","JASMINE"),
+add_EMT_score_multiple <- function(objects, gmt_file, emt_names = NULL,
+                                   method = c("Seurat","nnPCA","AUCell","ssGSEA","GSVA","SCSE","JASMINE"),
                                    nnPCA_dim = 1, cores = 1) {
   
   method <- match.arg(method)
@@ -131,6 +136,10 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
   Genesets_obj <- GSA.read.gmt(gmt_file)
   feature_lists <- lapply(Genesets_obj$genesets, unlist)
   feature_names <- Genesets_obj$geneset.names
+  
+  if (is.null(emt_names)) {
+    message("emt_names not provided, using gene set names from GMT file.")
+  } 
   
   obj_list <- lapply(names(objects), function(name) {
     
@@ -160,31 +169,48 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names,
     } else if (method == "nnPCA") {
       
       r <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = nnPCA_dim, cores = cores)
-      colnames(r) <- emt_names
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
       obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "AUCell") {
       
       r <- Execute_AUCell_parallel(geneExp, gmt_file, cores = cores)
-      colnames(r) <- emt_names
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
       obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "ssGSEA") {
       
       r <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = cores)
-      colnames(r) <- emt_names
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
       obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
+    } else if (method == "GSVA") {
+      
+      r <- Execute_GSVA_parallel(geneExp, gmt_file, cores = cores)
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
+      obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
     } else if (method == "SCSE") {
       
       r <- Execute_SCSE_parallel(geneExp, gmt_file, cores = cores)
-      colnames(r) <- emt_names
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
       obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
       
     } else if (method == "JASMINE") {
       
       r <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = cores)
-      colnames(r) <- emt_names
+      if (!is.null(emt_names)) {
+        colnames(r) <- emt_names
+      }
       obj@meta.data <- cbind(obj@meta.data, as.data.frame(as.matrix(r)))
     }
     

@@ -7,8 +7,8 @@
 add_EMT_score_multiple(
   objects,
   gmt_file,
-  emt_names,
-  method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
+  emt_names = NULL,
+  method = c("Seurat", "nnPCA", "AUCell", "ssGSEA", "GSVA", "SCSE", "JASMINE"),
   nnPCA_dim = 1,
   cores = 1
 )

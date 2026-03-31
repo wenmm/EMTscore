@@ -32,7 +32,6 @@ Imports:
     paletteer,
     ggthemes,
     curl,
-    DoubletFinder,
     Matrix,
     data.table,
     monocle,

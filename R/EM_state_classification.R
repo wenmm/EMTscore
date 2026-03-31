@@ -13,15 +13,15 @@
 #' @return A named character vector of cluster labels for each sample.
 #' @examples
 #' data(nnPCA_Result_multiple)
-#' labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", PC_name = c("Escore", "Mscore"))
-#' labels_km  <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 5,PC_name = c("Escore", "Mscore"))
+#' labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore"))
+#' labels_km  <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 3,PC_name = c("Escore", "Mscore"))
 #' @export
-predict_cluster_labels <- function(pca_result, method = "GMM", n_clusters = 5, PC_name = c("Escore", "Mscore")) {
+predict_cluster_labels <- function(pca_result, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore")) {
   
   if (!(method %in% c("GMM", "Kmeans"))) stop("method must be 'GMM' or 'Kmeans'")
   
   if (method == "GMM") {
-    cluster_result <- Mclust(pca_result)
+    cluster_result <- Mclust(pca_result, G = n_clusters)
     cl1 <- cluster_result$classification
     cluster_center_Mean <- cluster_result$parameters$mean
     rownames(cluster_center_Mean) <- PC_name

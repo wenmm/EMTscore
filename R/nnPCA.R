@@ -15,7 +15,7 @@
 #' @import GSA stringr nsprcomp
 #' 
 #' @examples
-#' url <- "https://zenodo.org/records/17438655/files/geneExp.rda"
+#' url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
 #' destfile <- tempfile(fileext = ".rda")
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
@@ -27,7 +27,12 @@ Execute_nnPCA <- function(exprMatrix, Genesets, dimension, score_names)
   exprMatrix <- t(exprMatrix)
   genes <- unlist(read_gmt(Genesets)$gene)
   geneExp <- exprMatrix[, colnames(exprMatrix) %in% genes]
-  pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension)
+  
+  if(ncol(geneExp) == 0){
+    stop("No matching genes found in the expression matrix. Please check that the species and the capitalization of gene names in your expression matrix match those in the provided signature gene list.")
+  }
+  
+  pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension, scale. = TRUE)
   dfpc <- data.frame(pc_feature$x)
   dfpc[is.na(dfpc)] <- 0
   colnames(dfpc) <- score_names

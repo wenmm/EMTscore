@@ -7,7 +7,7 @@
 predict_cluster_labels(
   pca_result,
   method = "GMM",
-  n_clusters = 5,
+  n_clusters = 3,
   PC_name = c("Escore", "Mscore")
 )
 }
@@ -31,6 +31,6 @@ labels for each sample.
 }
 \examples{
 data(nnPCA_Result_multiple)
-labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", PC_name = c("Escore", "Mscore"))
-labels_km  <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 5,PC_name = c("Escore", "Mscore"))
+labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore"))
+labels_km  <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 3,PC_name = c("Escore", "Mscore"))
 }

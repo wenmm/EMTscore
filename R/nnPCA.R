@@ -32,7 +32,8 @@ Execute_nnPCA <- function(exprMatrix, Genesets, dimension, score_names)
     stop("No matching genes found in the expression matrix. Please check that the species and the capitalization of gene names in your expression matrix match those in the provided signature gene list.")
   }
   
-  pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension, scale. = TRUE)
+  #pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension, scale. = TRUE)
+  pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension)
   dfpc <- data.frame(pc_feature$x)
   dfpc[is.na(dfpc)] <- 0
   colnames(dfpc) <- score_names

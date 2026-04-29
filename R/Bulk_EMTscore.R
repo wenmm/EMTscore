@@ -51,11 +51,11 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-#' res <- add_EMT_score_Bulk(expr_mat = geneExp, gmt_file, method = "AUCell")
+#' res <- add_EMT_score_Bulk(expr_mat = geneExp, gmt_file, emt_name = "EMT", method = "AUCell", dimension = 1)
 #'
 #' # multiple matrices (named list)
 #' exprs <- list(TCGA = geneExp, GTEX = geneExp)
-#' res_list <- add_EMT_score_Bulk(expr_mat_list = exprs, gmt_file, method = "nnPCA", dimension = 1)
+#' res_list <- add_EMT_score_Bulk(expr_mat_list = exprs, gmt_file, emt_name = "EMT", method = "nnPCA", dimension = 1)
 #'
 #' @export
 

@@ -10,7 +10,7 @@
 #'
 #' @return A numeric matrix (for bulk input) or a Seurat object with a new metadata column (for Seurat input).
 #' @examples 
-#' url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
+#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
 #' destfile <- tempfile(fileext = ".rda")
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)

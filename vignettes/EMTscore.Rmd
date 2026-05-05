@@ -34,15 +34,11 @@ library(ggthemes)
 library(ComplexHeatmap)
 library(EMTscore)
 library(AUCell)
-#library(SeuratWrappers)
-library(monocle)
-library(slingshot)
 library(Seurat)
 library(GSA)
 library(mclust)
 library(ggalluvial)
 library(RColorBrewer)
-#library(hrbrthemes)
 library(Cairo)
 library(ExperimentHub)
 library(SummarizedExperiment)
@@ -88,7 +84,7 @@ head(cell_annotation_file)
 ## 2.2 Download gene expression data
 Here we provide an example bulk gene expression matrix file from <a href="#refGroves2023">Groves et al. 2023</a>. The resulting dataset contains 120 samples and 15,950 genes, with row names representing cell names and column names representing gene symbols.
 ```{r}
-url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
+url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
 destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
 load(destfile)

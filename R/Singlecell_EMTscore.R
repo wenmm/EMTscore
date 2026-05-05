@@ -114,7 +114,7 @@ add_EMT_score <- function(objects,
 #' @param nnPCA_dim Integer. Dimension used in nnPCA.
 #' @param cores Integer. Number of CPU cores for parallel computation.
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr slingshot ggplot2  monocle Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2  Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with multiple EMT score columns added.
 #' @examples
 #' eh = ExperimentHub()

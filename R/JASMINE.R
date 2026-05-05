@@ -88,7 +88,7 @@ JASMINE <- function(data, genes) {
 #' @import GSA stringr
 #' 
 #' @examples
-#' url <- "https://zenodo.org/records/18168504/files/geneExp.rda"
+#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
 #' destfile <- tempfile(fileext = ".rda")
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)

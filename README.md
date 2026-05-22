@@ -154,6 +154,28 @@ Full documentation and vignettes are available in the package:
 ```{r}
 vignette("EMTscore")
 ```
+### Citation
+
+Please cite:
+
+Wen H, Bleris L, Hong T (2026).
+EMTscore infers divergent EMT pathways from omics data and enables rapid screening for EMT-associated gene sets.
+Bioinformatics, 42(5), btag286.
+https://doi.org/10.1093/bioinformatics/btag286
+
+BibTeX:
+
+@article{wen2026emtscore,
+  title={EMTscore infers divergent EMT pathways from omics data and enables rapid screening for EMT-associated gene sets},
+  author={Wen, Haimei and Bleris, Leonidas and Hong, Tian},
+  journal={Bioinformatics},
+  volume={42},
+  number={5},
+  pages={btag286},
+  year={2026},
+  doi={10.1093/bioinformatics/btag286},
+  url={https://doi.org/10.1093/bioinformatics/btag286}
+}
 
 ### Feedback & Contributions
 Please submit issues or pull requests on GitHub:

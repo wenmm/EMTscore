@@ -117,7 +117,7 @@ filter_gmt_by_reference <- function(ref_gmt,
   
   # ---- Safe reading function (handles Windows/Mac/UTF-8 issues) ----
   safe_read_gmt <- function(path) {
-    message("Reading → ", path)
+    message("Reading:", path)
     if (!file.exists(path)) stop("File not found: ", path)
     
     lines <- tryCatch({
@@ -126,7 +126,7 @@ filter_gmt_by_reference <- function(ref_gmt,
       message("  UTF-8 failed, trying latin1...")
       readLines(path, encoding = "latin1", warn = FALSE)
     })
-    message("  Success: ", length(lines), " lines loaded\n")
+    message("Success: ", length(lines), " lines loaded\n")
     return(lines)
   }
   

@@ -19,11 +19,11 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_SCSE_parallel(data, gmt_file, cores = 2)
+#' result <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 2)
 
 Execute_SCSE_parallel <- function(exprMatrix, gmt_file, cores) {
   stringsAsFactors <- FALSE
-
+  
   registerDoParallel(cores)
   
   #---------------- SCSE function ----------------#
@@ -67,5 +67,5 @@ Execute_SCSE_parallel <- function(exprMatrix, gmt_file, cores) {
   }
   rownames(Combine_SCSE) <- Combine_SCSE$Pathway
   Combine_SCSE$Pathway <- NULL
-  return(t(Combine_SCSE))
+  return(Combine_SCSE)
 }

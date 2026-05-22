@@ -35,12 +35,3 @@ for one or more single-cell objects using multiple scoring methods.
 Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 \code{"GSVA"}, \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
 }
-\examples{
-eh = ExperimentHub()
-A549_TNF <- eh[['EH10291']]
-A549_EGF <- eh[['EH10292']]
-A549_TGFB1 <- eh[['EH10293']]
-objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
-gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
-seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
-}

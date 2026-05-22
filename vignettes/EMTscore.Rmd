@@ -41,8 +41,9 @@ library(ggalluvial)
 library(RColorBrewer)
 library(Cairo)
 library(ExperimentHub)
+library(EMTscoreData)
 library(SummarizedExperiment)
-options(mc.cores = 4)
+options(mc.cores = 1)
 options(bitmapType='cairo')
 
 
@@ -137,12 +138,12 @@ SCSE_Result_EMT <- Execute_SCSE(geneExp, gmt_file, score_names = "EMT")
 2. Calculate EMT scores with multiple EMT gene sets
 ```{r}
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
-nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
-AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 2)
-ssGSEA_Result_multiple <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = 2)
-GSVA_Result_multiple <- Execute_GSVA_parallel(geneExp, gmt_file, cores = 2)
-JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 2)
-SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 2)
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 1)
+AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 1)
+ssGSEA_Result_multiple <- Execute_ssGSEA_parallel(geneExp, gmt_file, cores = 1)
+GSVA_Result_multiple <- Execute_GSVA_parallel(geneExp, gmt_file, cores = 1)
+JASMINE_Result_multiple <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 1)
+SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 1)
 ```
 
 ## 2.6 Prepare Data for Plotting
@@ -203,7 +204,7 @@ combined_plot
 One useful application of nnPCA-based EMT scores is to examine the potential divergence among M genes. To explore this, we extract the data projected onto multiple principal components, allowing us to capture the main axes of variation within the mesenchymal gene set. We then visualize the samples in this reduced-dimensional space, which helps reveal patterns of heterogeneity, potential subpopulations, or outlier behaviors that may be masked in the full gene expression matrix. This approach provides a more nuanced understanding of EMT dynamics and highlights subtle differences in mesenchymal programs across samples.
 ```{r}
 # Prepare M gene set and compute nnPCA
-
+data(cell_annotation_file)
 gene_set <- list(Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName)
 write_gmt(gene_set, "M_signature.gmt")
 
@@ -211,7 +212,7 @@ nnPCA_Mscore <- Execute_nnPCA(geneExp, "M_signature.gmt", dimension=2, score_nam
 data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
 
 plot2 <- Execute_M_dimension_plot(
-data_for_plot,
+data_for_plot = data_for_plot,
 M1_colname = "M1_score",
 M2_colname = "M2_score",
 celltype_colname = "celltype_annotation",
@@ -269,7 +270,7 @@ query(eh , 'EMTscoreData')
 #A549_TNF <- eh[['EH10291']]
 A549_EGF <- eh[['EH10292']]
 A549_TGFB1 <- eh[['EH10293']]
-gmt <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
+gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 
 objects <- list(
 A549_TGFB1 = A549_TGFB1,
@@ -297,7 +298,7 @@ A549_EGF   = A549_EGF
 #p_Seurat <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 #p_Seurat
 
-seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
+seurat_objs <- add_EMT_score(objects, gmt_file = gmt_file, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
 p_nnPCA <- plot_EMT_from_objects(seurat_objs, col_name = "Pseudotime", emt_score_col = "EMT_score")
 p_nnPCA
 #4.67 2.94 inches use_cairopdf 
@@ -316,7 +317,7 @@ gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 
 
 emt_names = c("Escore", "Mscore")
-result <- add_EMT_score_multiple(objects, gmt_file, emt_names, method = "nnPCA", nnPCA_dim = 1, cores = 10)
+result <- add_EMT_score_multiple(objects, gmt_file, emt_names, method = "nnPCA", nnPCA_dim = 1, cores = 1)
 
 #save into pdf format
 
@@ -413,7 +414,7 @@ To understand which signaling pathways are most strongly associated with the epi
 filtered_file <- system.file("extdata", "filtered.c2.gmt", package = "EMTscore")
 #filtered_file <- "/home/hwen/project/EMTscore/EMTscore/inst/extdata/filtered.c2.gmt"
   
-nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 2)
+nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, filtered_file, dimension = 1, cores = 1)
 result <- correlate_sample_scores(score_mat1 = nnPCA_Result_multiple, score_mat2 = nnPCA_Result_EMT, method = "pearson")
 head(result)
 ```
@@ -550,7 +551,7 @@ gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 
 EMscore_result <- add_EMT_score_multiple(objects, gmt_file,emt_names = c("Escore", "Mscore"),
                           method = "nnPCA",
-                          nnPCA_dim = 1, cores = 2)
+                          nnPCA_dim = 1, cores = 1)
 
 head(EMscore_result$A549_TGFB1@meta.data)
 

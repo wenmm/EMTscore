@@ -51,30 +51,45 @@ data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
 #' )
 #' @export
 Execute_E_M_plot <- function(data_for_plot, 
-                             E_colname = "Panchy_et_al_E_signature", 
-                             M_colname = "Panchy_et_al_M_signature", 
-                             celltype_colname = "celltype_annotation", 
+                             E_colname, 
+                             M_colname, 
+                             celltype_colname, 
                              colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F", 
                                         "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")) {
-    
+  
   E <- sym(E_colname)
   M <- sym(M_colname)
   CellType <- sym(celltype_colname)
+  
+  data_for_plot[[E_colname]] <- as.numeric(unlist(data_for_plot[[E_colname]]))
+  data_for_plot[[M_colname]] <- as.numeric(unlist(data_for_plot[[M_colname]]))
+  
+
+  data_for_plot <- data_for_plot %>%
+    dplyr::filter(
+      !is.na(!!E),
+      !is.na(!!M)
+    )
   
   p <- ggplot(data_for_plot, aes(x = !!E, y = !!M, fill = !!CellType)) +
     geom_point(size = 2.5, alpha = 0.3, aes(color = !!CellType)) +
     scale_colour_manual(values = colors) +
     stat_density2d(aes(x = !!E, y = !!M), bins = 10, alpha = 0.2, geom = "polygon")
   
+
   sbg <- data_for_plot %>%
     group_by(!!CellType) %>%
     summarise(
       count = n(),
-      mE = mean(!!E, na.rm = TRUE),
-      sdE = sd(!!E, na.rm = TRUE),
-      mM = mean(!!M, na.rm = TRUE),
-      sdM = sd(!!M, na.rm = TRUE)
+      mE = mean(as.numeric(unlist(!!E)), na.rm = TRUE),
+      sdE = sd(as.numeric(unlist(!!E)), na.rm = TRUE),
+      mM = mean(as.numeric(unlist(!!M)), na.rm = TRUE),
+      sdM = sd(as.numeric(unlist(!!M)), na.rm = TRUE),
+      .groups = "drop"
     )
+  
+
+  sbg <- sbg[complete.cases(sbg), ]
   
   p2 <- p +
     geom_errorbar(data = sbg,
@@ -119,6 +134,14 @@ Execute_E_M_plot <- function(data_for_plot,
 #' @import ggplot2 dplyr rlang
 #' @return A ggplot object.
 #' @examples
+#' data(cell_annotation_file)
+#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
+#' destfile <- tempfile(fileext = ".rda")
+#' download.file(url, destfile, mode = "wb")
+#' load(destfile)
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' nnPCA_Mscore <- Execute_nnPCA(geneExp, gmt_file, dimension=2, score_names=c('M1_score','M2_score'))
+#' data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
 #' plot2 <- Execute_M_dimension_plot(
 #' data_for_plot,
 #' M1_colname = "M1_score",

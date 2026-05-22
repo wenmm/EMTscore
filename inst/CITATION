@@ -1,0 +1,24 @@
+citHeader("To cite EMTscore in publications use:")
+
+citEntry(
+  entry = "Article",
+  title = "EMTscore infers divergent EMT pathways from omics data and enables rapid screening for EMT-associated gene sets",
+  author = personList(
+    person("Haimei", "Wen"),
+    person("Leonidas", "Bleris"),
+    person("Tian", "Hong")
+  ),
+  year = "2026",
+  journal = "Bioinformatics",
+  volume = "42",
+  number = "5",
+  pages = "btag286",
+  doi = "10.1093/bioinformatics/btag286",
+  url = "https://doi.org/10.1093/bioinformatics/btag286",
+  textVersion = paste(
+    "Wen H, Bleris L, Hong T (2026).",
+    "\"EMTscore infers divergent EMT pathways from omics data and enables rapid screening for EMT-associated gene sets.\"",
+    "Bioinformatics, 42(5), btag286.",
+    "doi:10.1093/bioinformatics/btag286."
+  )
+)

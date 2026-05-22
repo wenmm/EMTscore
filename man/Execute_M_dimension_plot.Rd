@@ -31,6 +31,14 @@ A ggplot object.
 Scatter plot of two M scores with mean ± SD per cell type.
 }
 \examples{
+data(cell_annotation_file)
+url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
+destfile <- tempfile(fileext = ".rda")
+download.file(url, destfile, mode = "wb")
+load(destfile)
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+nnPCA_Mscore <- Execute_nnPCA(geneExp, gmt_file, dimension=2, score_names=c('M1_score','M2_score'))
+data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
 plot2 <- Execute_M_dimension_plot(
 data_for_plot,
 M1_colname = "M1_score",

@@ -14,18 +14,11 @@
 #'   \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.
 #' @param nnPCA_dim Integer. Dimension for nnPCA (default = 1).
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2 Seurat data.table nsprcomp
+#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2 Seurat data.table nsprcomp EMTscoreData
 #' @return A named list of Seurat objects with a new metadata column containing EMT scores.
 #' 
-#' @examples
-#' eh = ExperimentHub()
-#' A549_TNF <- eh[['EH10291']]
-#' A549_EGF <- eh[['EH10292']]
-#' A549_TGFB1 <- eh[['EH10293']]
-#' objects <- list(A549_TGFB1 = A549_TGFB1,A549_EGF   = A549_EGF,A549_TNF   = A549_TNF)
-#' gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
-#' seurat_objs <- add_EMT_score(objects, gmt_file = gmt, emt_name = "EMT_score", method = "nnPCA",nnPCA_dim = 1)
 #' @export
+
 add_EMT_score <- function(objects,
                           gmt_file,
                           emt_name = "EMT_Score",
@@ -117,6 +110,7 @@ add_EMT_score <- function(objects,
 #' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2  Seurat data.table nsprcomp
 #' @return A named list of Seurat objects with multiple EMT score columns added.
 #' @examples
+#' library(ExperimentHub)
 #' eh = ExperimentHub()
 #' A549_TNF <- eh[['EH10291']]
 #' A549_EGF <- eh[['EH10292']]
@@ -239,9 +233,6 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names = NULL,
 #' @return A \code{ggplot} object showing smoothed EMT score trajectories along pseudotime 
 #'   for each condition.
 #'
-#' @examples
-#' # Assume obj_list has EMT scores calculated
-#' p <- plot_EMT_from_objects(obj_list, col_name = "Pseudotime", emt_score_col = "EMT_Score")
 #' 
 #' @export
 

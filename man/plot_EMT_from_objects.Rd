@@ -25,8 +25,3 @@ This function visualizes EMT (epithelial mesenchymal transition) scores
 across pseudotime for multiple Seurat objects. Each Seurat object is treated 
 as a different condition or sample.
 }
-\examples{
-# Assume obj_list has EMT scores calculated
-p <- plot_EMT_from_objects(obj_list, col_name = "Pseudotime", emt_score_col = "EMT_Score")
-
-}

@@ -9,6 +9,7 @@
 #' @param method Character, either "GMM" (Gaussian Mixture Model) or "Kmeans" for clustering. Default is "GMM".
 #' @param n_clusters Numeric, number of clusters for Kmeans. Ignored if method = "GMM".
 #' @param PC_name Character vector of length 2 specifying the column names for Escore and Mscore. Default is c("Escore", "Mscore").
+#' @import mclust
 #'
 #' @return A named character vector of cluster labels for each sample.
 #' @examples

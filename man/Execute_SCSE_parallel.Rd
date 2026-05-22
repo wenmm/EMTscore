@@ -28,5 +28,5 @@ destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
 load(destfile)
 gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-result <- Execute_SCSE_parallel(data, gmt_file, cores = 2)
+result <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 2)
 }

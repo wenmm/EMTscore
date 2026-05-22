@@ -6,9 +6,9 @@
 \usage{
 Execute_E_M_plot(
   data_for_plot,
-  E_colname = "Panchy_et_al_E_signature",
-  M_colname = "Panchy_et_al_M_signature",
-  celltype_colname = "celltype_annotation",
+  E_colname,
+  M_colname,
+  celltype_colname,
   colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F", "#84C7B9",
     "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
 )

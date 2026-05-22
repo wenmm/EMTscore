@@ -33,6 +33,7 @@ A named list of Seurat objects with multiple EMT score columns added.
 Computes EMT-related scores for multiple gene sets defined in a GMT file.
 }
 \examples{
+library(ExperimentHub)
 eh = ExperimentHub()
 A549_TNF <- eh[['EH10291']]
 A549_EGF <- eh[['EH10292']]

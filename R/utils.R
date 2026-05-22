@@ -95,7 +95,7 @@ write_gmt <- function(gene_sets, file) {
 #' @export
 #'
 #' @examples
-#' ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
+#' ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt", package = "EMTscore")
 #' target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
 #' output_gmt = "filtered_target.gmt"
 #' # Keep only gene sets that share < 30 % genes with TianLab EMT collection

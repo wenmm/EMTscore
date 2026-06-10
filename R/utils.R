@@ -17,52 +17,10 @@
 read_gmt <- function(fname){
   gmt_lines <- readLines(fname)
   gmt_list <- lapply(gmt_lines, function(x) unlist(strsplit(x, split="\t")))
-  gmt_genes <- lapply(gmt_list, function(x) x[3:length(x)])
+  gmt_genes <- lapply(gmt_list, function(x) x[seq(3, length(x))])
   genes <- unique(unlist(gmt_genes))
   return(data.frame(gene = genes, stringsAsFactors = FALSE))
 }
-
-#' Write a Gene Set Collection to a GMT File
-#'
-#' This function exports a list of gene sets into a GMT (Gene Matrix Transposed) file format.  
-#' Each line of the GMT file corresponds to one gene set, with the structure:
-#' By default, the gene set name is used as both the name and description fields.
-#'
-#' @param gene_sets A named list where each element is a character vector of gene identifiers.
-#'   The list names correspond to gene set names.
-#' @param file A character string specifying the path to the output GMT file.
-#'
-#' @details
-#' The GMT format is widely used by tools such as GSEA and Enrichr for representing gene set collections.
-#' Each line contains the set name, a description (often a URL or repeated name), and one or more gene identifiers separated by tabs.
-#'
-#' @return
-#' This function writes a GMT file to disk and returns \code{NULL} invisibly.
-#'
-#' @examples
-#' gene_sets <- list(
-#'   E = c("CDH1", "VIM", "SNAI1", "ZEB1"),
-#'   M = c("CDK1", "CCNB1", "CDC20")
-#' )
-#' write_gmt(gene_sets, file = "EM_signature.gmt")
-#'
-#' @export
-write_gmt <- function(gene_sets, file) {
-  if (!is.list(gene_sets) || is.null(names(gene_sets))) {
-  }
-  # Construct GMT lines: "name description gene1 gene2..."
-  gmt_lines <- lapply(names(gene_sets), function(name) {
-    genes <- gene_sets[[name]]
-    if (!is.character(genes)) {
-    }
-    # Use name as both set name and description (second field)
-    line <- paste(c(name, name, genes), collapse = "\t")
-    return(line)
-  })
-  # Write to file
-  writeLines(unlist(gmt_lines), con = file, useBytes = TRUE)
-}
-
 
 #' Filter a GMT file by overlap with a reference GMT
 #'
@@ -79,8 +37,8 @@ write_gmt <- function(gene_sets, file) {
 #'   Fraction of overlapping genes.
 #' @param keep_low_overlap Logical (default `TRUE`):
 #'   \itemize{
-#'     \item `TRUE`  – keep gene sets with overlap < `cutoff` (remove redundant sets)
-#'     \item `FALSE` – keep gene sets with overlap >= `cutoff` (keep similar sets)
+#'     \item `TRUE`  keep gene sets with overlap < `cutoff` (remove redundant sets)
+#'     \item `FALSE` keep gene sets with overlap >= `cutoff` (keep similar sets)
 #'   }
 #' @param min_genes Integer. Minimum number of genes required in a set
 #'   (default `5`). Sets with fewer genes are ignored.
@@ -97,7 +55,7 @@ write_gmt <- function(gene_sets, file) {
 #' @examples
 #' ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt", package = "EMTscore")
 #' target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' output_gmt = "filtered_target.gmt"
+#' output_gmt <- tempfile(fileext = ".gmt")
 #' # Keep only gene sets that share < 30 % genes with TianLab EMT collection
 #' filter_gmt_by_reference(
 #'   ref_gmt,
@@ -113,7 +71,7 @@ filter_gmt_by_reference <- function(ref_gmt,
                                     keep_low_overlap = TRUE,
                                     min_genes = 5) {
   
-  message("=== GMT Filtering – Bulletproof Edition ===\n")
+  message("=== GMT Filtering ===\n")
   
   # ---- Safe reading function (handles Windows/Mac/UTF-8 issues) ----
   safe_read_gmt <- function(path) {
@@ -140,7 +98,7 @@ filter_gmt_by_reference <- function(ref_gmt,
     if (line == "" || grepl("^#", line)) next
     parts <- strsplit(line, "\t")[[1]]
     if (length(parts) > 2) {
-      ref_genes <- c(ref_genes, parts[-(1:2)])
+      ref_genes <- c(ref_genes, parts[-seq_len(2)])
     }
   }
   ref_genes <- unique(ref_genes)
@@ -159,7 +117,7 @@ filter_gmt_by_reference <- function(ref_gmt,
     if (length(parts) < 3) next
     
     gs_name  <- parts[1]
-    gs_genes <- parts[-(1:2)]
+    gs_genes <- parts[-seq_len(2)]
     gs_genes <- gs_genes[gs_genes != "" & !is.na(gs_genes)]
     
     if (length(gs_genes) < min_genes) next
@@ -186,10 +144,11 @@ filter_gmt_by_reference <- function(ref_gmt,
   }
   
   message("Overlap fraction distribution:")
-  print(summary(stats$fraction))
+  message(paste(utils::capture.output(summary(stats$fraction)), collapse = "\n"))
   
   message("\nTop 10 most similar to reference (highest overlap):")
-  print(head(stats[order(stats$fraction, decreasing = TRUE), ], 10))
+  top10 <- head(stats[order(stats$fraction, decreasing = TRUE), ], 10)
+  message(paste(utils::capture.output(top10), collapse = "\n"))
   
   # ---- Write output ----
   writeLines(kept, output_gmt)

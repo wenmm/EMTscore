@@ -13,7 +13,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r}
+```{r emtscore-1}
 #load("/home/hwen/project/EMTscore/EMTscore_rmd.RData")
 ```
 
@@ -77,14 +77,14 @@ A cell/sample annotation file should also be provided.
 ## 2.1 Load cell/sample annotation
 Here we provide a `cell annotation file` <a href="#refGroves2023">Groves et al. 2023</a>. The two most important columns are: one named `name`, which represents the cell name, and another named `celltype_annotation`, which indicates the cell type classification.
 
-```{r}
+```{r emtscore-2}
 data(cell_annotation_file)
 head(cell_annotation_file)
 ```
 
 ## 2.2 Download gene expression data
 Here we provide an example bulk gene expression matrix file from <a href="#refGroves2023">Groves et al. 2023</a>. The resulting dataset contains 120 samples and 15,950 genes, with row names representing cell names and column names representing gene symbols.
-```{r}
+```{r emtscore-3}
 url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
 destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
@@ -97,7 +97,7 @@ dim(geneExp)
 Here, we use a built-in gene set `Panchy_et_al_E_signature` and `Panchy_et_al_M_signature` <a href="#ref2">Panchy et al. 2022</a>.
 
 There are several additional options that users can choose from, such as: `Tan_et_al_tumor_E_signature`, `Tan_et_al_tumor_M_signature`, `Tan_et_al_cell_line_E_signature`, `Tan_et_al_cell_line_M_signature` <a href="#ref3">Tan et al. 2014</a>, `MSigDB_Hallmark` <a href="#refMSigDB">Liberzon et al. 2015</a> and `GO` <a href="#refGO">Gene Ontology Consortium 2021</a>.
-```{r}
+```{r emtscore-4}
 data("Panchy_et_al_E_signature", package = "EMTscore")
 data("Panchy_et_al_M_signature", package = "EMTscore")
 head(Panchy_et_al_M_signature)
@@ -105,7 +105,7 @@ head(Panchy_et_al_M_signature)
 
 ## 2.4 Prepare gene sets and save as GMT
 
-```{r}
+```{r emtscore-5}
 gene_sets <- list(
 Panchy_et_al_E_signature = Panchy_et_al_E_signature$GeneName,
 Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName
@@ -125,7 +125,7 @@ Gene set scores can be computed with one or more of the following methods:<br>
 
 
 1. Calculate EMT scores with single EMT gene set
-```{r}
+```{r emtscore-6}
 gmt_file <- system.file("extdata", "HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION.v2025.1.Hs.gmt", package = "EMTscore")
 nnPCA_Result_EMT <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "EMT")
 AUCell_Result_EMT <- Execute_AUCell(geneExp, gmt_file, score_names = "EMT")
@@ -136,7 +136,7 @@ SCSE_Result_EMT <- Execute_SCSE(geneExp, gmt_file, score_names = "EMT")
 ```
 
 2. Calculate EMT scores with multiple EMT gene sets
-```{r}
+```{r emtscore-7}
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 nnPCA_Result_multiple <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 1)
 AUCell_Result_multiple <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 1)
@@ -148,13 +148,13 @@ SCSE_Result_multiple <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 1)
 
 ## 2.6 Prepare Data for Plotting
 Here we use nnPCA scores for our plot examples.
-```{r}
+```{r emtscore-8}
 data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Result_multiple, merge_colname = "name")
 ```
 
 ## 2.7 E score vs M score Plot
 As a fundamental visualization, we plot the M scores against the E scores for all samples. Sample annotations are overlaid to highlight trends across different groups, enabling us to observe patterns of epithelial–mesenchymal variation.
-```{r}
+```{r emtscore-9}
 plot1 <- Execute_E_M_plot(
 data_for_plot,
 E_colname = "Panchy_et_al_E_signature",
@@ -167,7 +167,7 @@ plot1
 ```
 
 To comprehensively compare EMT scoring across different computational methods, we generated E–M scatter plots for all methods, including nnPCA, AUCell, ssGSEA, JASMINE, and SCSE. For each method, samples are projected onto the E (epithelial) and M (mesenchymal) score space, and annotations are overlaid to reveal group-level patterns. The main title of each plot indicates the corresponding method.
-```{r}
+```{r emtscore-10}
 method_list <- list(
   nnPCA = nnPCA_Result_multiple,
   AUCell = AUCell_Result_multiple,
@@ -202,7 +202,7 @@ combined_plot
 
 ## 2.8 dimension 1 M score vs dimension 2 M score Plot
 One useful application of nnPCA-based EMT scores is to examine the potential divergence among M genes. To explore this, we extract the data projected onto multiple principal components, allowing us to capture the main axes of variation within the mesenchymal gene set. We then visualize the samples in this reduced-dimensional space, which helps reveal patterns of heterogeneity, potential subpopulations, or outlier behaviors that may be masked in the full gene expression matrix. This approach provides a more nuanced understanding of EMT dynamics and highlights subtle differences in mesenchymal programs across samples.
-```{r}
+```{r emtscore-11}
 # Prepare M gene set and compute nnPCA
 data(cell_annotation_file)
 gene_set <- list(Panchy_et_al_M_signature = Panchy_et_al_M_signature$GeneName)
@@ -224,7 +224,7 @@ plot2
 
 ## 2.9 Combined Plot
 We can combine both types of scatter plot to give an overall picture.
-```{r}
+```{r emtscore-12}
 combined_plot <- Arrange_plots(
 plots_list = list(plot1, plot2),
 ncol_per_row = 2,
@@ -236,7 +236,7 @@ print(combined_plot)
 
 ## 2.10 E/M Score Distributions
 To explore the distribution of epithelial (E) and mesenchymal (M) scores across different cell types, we plotted separate histograms for each score and cell type. This allows us to compare the overall EMT profiles between cell populations, observe shifts in epithelial or mesenchymal programs, and identify cell types enriched for higher or lower E or M scores.
-```{r}
+```{r emtscore-13}
 colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
 "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
 p_hist <- data_for_plot %>%
@@ -250,7 +250,7 @@ p_hist
 
 ## 2.11 Heatmap
 Heatmaps provide an effective way to visualize the expression patterns of individual genes that contribute to each principal component, highlighting variation and clustering across samples.
-```{r}
+```{r emtscore-14}
 # Example heatmap
 
 plot_heatmap_function(t(geneExp), Panchy_et_al_M_signature)
@@ -262,7 +262,7 @@ Next, we demonstrate the analysis workflow using a separate single-cell RNA-seq 
 
 ## 3.1 Data Importing and Basic Calculations
 Users can import single-cell data either as Seurat objects (`RDS` format) or as SingleCellExperiment objects (`RDA` format). Gene sets can be provided using GMT files for input. Different scoring methods can be specified via the `method` argument. Calculated EMT scores can then be plotted against pseudotime to examine dynamic changes in epithelial–mesenchymal states.
-```{r, message=FALSE}
+```{r emtscore-15, message=FALSE}
 #obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
 eh = ExperimentHub()
@@ -312,7 +312,7 @@ p_nnPCA
 We can build simple GMMs for all cells in the E-M space so that we can identify different EMT states. 
 We can also map the existing annotations/clusters to these GMM states. This is particularly helpful to 
 identify clusters that are extreme E/M states or intermediate EMT states.
-```{r, message=FALSE}
+```{r emtscore-16, message=FALSE}
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 
 
@@ -395,7 +395,7 @@ plot_all_clusters(result, method = "GMM", emt_names)
 
 ## 3.3 Identifying Pathways Most Associated with the EMT Process
 To understand which signaling pathways are most strongly associated with the epithelial–mesenchymal transition (EMT) process, we can compute pathway activity scores for each sample and correlate them with EMT scores.
-```{r, message=FALSE, warning=FALSE, results='hide'}
+```{r emtscore-17, message=FALSE, warning=FALSE, results='hide'}
 #data(nnPCA_Result_EMT)
 #data(nnPCA_Result_multiple)
 #ref_gmt <- system.file("extdata", "TianLab_collected_EMT_fignatures.gmt", package = "EMTscore")
@@ -423,7 +423,7 @@ head(result)
 To highlight the pathways most strongly associated with the target EMT score, we extracted the top 10 positively correlated pathways from the correlation results. A horizontal bar chart was generated using `ggplot2`, which provides clear visualization of pathway names and allows straightforward comparison of correlation strengths across pathways.
 
 This plot offers an intuitive summary of the biological processes showing the strongest positive association with the EMT score, enabling users to quickly identify pathways that may play key roles in the underlying biological context.
-```{r}
+```{r emtscore-18}
 df_top10 <- head(result, 10)
 
 df_top10$Pathway <- factor(df_top10$Pathway_in_score_mat1, 
@@ -468,7 +468,7 @@ ggplot(df_top10, aes(x = reorder(Pathway, Correlation), y = Correlation)) +
 ### 2. Visualizing the Top 10 Negatively Correlated Pathways
 
 To identify pathways that show strong inverse associations with the EMT score, we also selected the top 10 pathways exhibiting the most negative correlation values.
-```{r}
+```{r emtscore-19}
 sig_result <- subset(result, P_value < 0.05)
 df_top_N10 <- head(sig_result[order(sig_result$Correlation), ], 10)
 
@@ -513,14 +513,14 @@ In addition to EMT scores, we can compute other relevant biological scores to fu
 Here, we use the `compute_Signature_score` function to calculate scores for each sample based on predefined gene signatures:
 
 ### 1. Stemness score: Calculated using the `stemsig.tsv` gene signature file, reflecting cellular pluripotency or stem-like characteristics.
-```{r}
+```{r emtscore-20}
 signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file , score_name = "stemness_score")
 head(scores)
 ```
 
 ### 2. Senescence score: Calculated using the `cellular_senescence_sig.tsv` gene signature file, reflecting the cellular aging state.
-```{r}
+```{r emtscore-21}
 signature_file <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 scores <- compute_Signature_score(geneExp, signature_file, score_name = "senescence_score")
 head(scores)
@@ -532,7 +532,7 @@ In this section, we analyze single-cell RNA-seq datasets to compute stemness, se
 The stemness signature (`stemsig.tsv`) was obtained from <a href='#ref_9'> (Jing et al. 2025) </a>.<br> and the cellular senescence signature (`cellular_senescence_sig.tsv`) was derived from <a href='#ref_10'> (Malta T. 2018) </a>.<br>.
 
 ### 1. Compute stemness and senescence scores for each cell using predefined gene signatures:
-```{r}
+```{r emtscore-22}
 #obj <- system.file("extdata", "example_seurat_obj.rds", package = "EMTscore")
 #files <- c(obj)
 signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
@@ -545,7 +545,7 @@ head(result$A549_TGFB1@meta.data)
 ```
 
 ### 2. Compute EMT Scores:
-```{r}
+```{r emtscore-23}
 
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 
@@ -569,7 +569,7 @@ plot_EMT_from_objects(Mscore_result, col_name = "Pseudotime", emt_score_col = "M
 
 #### E vs M scatter plot
 
-```{r}
+```{r emtscore-24}
 
 df <- EMscore_result$A549_TGFB1@meta.data
 plot1 <- Execute_E_M_plot(
@@ -586,7 +586,7 @@ plot1
 
 
 #### Mscore PC1 vs Mscore PC2 scatter plot
-```{r}
+```{r emtscore-25}
 df <- Mscore_result$A549_TGFB1@meta.data
 plot2 <- Execute_M_dimension_plot(
 df,
@@ -599,7 +599,7 @@ colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
 plot2
 ```
 ### Combined Plot
-```{r}
+```{r emtscore-26}
 combined_plot <- Arrange_plots(
 plots_list = list(plot1, plot2),
 ncol_per_row = 2,
@@ -610,7 +610,7 @@ print(combined_plot)
 ```
 
 ### 3. Examine Correlation Between Stemness and Senescence:
-```{r}
+```{r emtscore-27}
 df <- result$A549_TGFB1@meta.data
 cor_test <- cor.test(df$Senescence_Score, df$Stemness_Score, method = "pearson")
 R_val <- round(cor_test$estimate, 2)
@@ -661,7 +661,7 @@ Specifically, we:
       Senescence vs. E-score
 
       Senescence vs. M-score
-```{r}
+```{r emtscore-28}
 # Extract metadata
 df1 <- result$A549_TGFB1@meta.data
 df2 <- EMscore_result$A549_TGFB1@meta.data
@@ -733,7 +733,7 @@ for (x_var in x_vars) {
 ```
 
 
-```{r}
+```{r emtscore-29}
 sessionInfo()
 ```
 

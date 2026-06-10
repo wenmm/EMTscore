@@ -28,7 +28,7 @@ Execute_E_M_plot(
 A ggplot object.
 }
 \description{
-Scatter plot of E vs M scores with mean ± SD per cell type.
+Scatter plot of E vs M scores with mean +/- SD per cell type.
 }
 \examples{
 data(data_for_plot)

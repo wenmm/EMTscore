@@ -25,3 +25,15 @@ This function visualizes EMT (epithelial mesenchymal transition) scores
 across pseudotime for multiple Seurat objects. Each Seurat object is treated 
 as a different condition or sample.
 }
+\examples{
+\donttest{
+library(ExperimentHub)
+eh <- ExperimentHub()
+A549_TGFB1 <- eh[["EH10293"]]
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+objs <- add_EMT_score(list(A549_TGFB1 = A549_TGFB1), gmt_file,
+  emt_name = "EMT_Score", method = "AUCell")
+p <- plot_EMT_from_objects(objs, col_name = "nCount_RNA",
+  emt_score_col = "EMT_Score")
+}
+}

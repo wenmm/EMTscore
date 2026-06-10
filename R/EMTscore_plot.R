@@ -29,7 +29,7 @@ data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
 
 #' Plot E vs M scores
 #'
-#' Scatter plot of E vs M scores with mean ± SD per cell type.
+#' Scatter plot of E vs M scores with mean +/- SD per cell type.
 #'
 #' @param data_for_plot A data.frame prepared by plot_data_prepare.
 #' @param E_colname Character, column name for E score.
@@ -38,7 +38,7 @@ data_prepare <- function(cell_annotation_file, score_result, merge_colname) {
 #' @param colors Vector of colors for cell types.
 #'
 #' @return A ggplot object.
-#' @import ggplot2 dplyr rlang
+#' @import ggplot2
 #' @examples
 #' data(data_for_plot)
 #' plot <- Execute_E_M_plot(
@@ -124,14 +124,14 @@ Execute_E_M_plot <- function(data_for_plot,
 
 #' Plot M dimension scores
 #'
-#' Scatter plot of two M scores with mean ± SD per cell type.
+#' Scatter plot of two M scores with mean +/- SD per cell type.
 #'
 #' @param data_for_plot A data.frame prepared by plot_data_prepare.
 #' @param M1_colname Column name for M1 score.
 #' @param M2_colname Column name for M2 score.
 #' @param celltype_colname Column name for cell type annotation.
 #' @param colors Vector of colors for cell types.
-#' @import ggplot2 dplyr rlang
+#' @import ggplot2
 #' @return A ggplot object.
 #' @examples
 #' data(cell_annotation_file)
@@ -263,6 +263,16 @@ Arrange_plots <- function(plots_list,
 #' @param geneList_M M signature gene list in dataframe, we supply example list such as geneList_M, M_signature_for_cancer, M_signature_for_cell
 #'
 #' @return Figure represent EMT score for different methods and gene sets
+#' @examples
+#' \donttest{
+#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
+#' destfile <- tempfile(fileext = ".rda")
+#' download.file(url, destfile, mode = "wb")
+#' load(destfile)
+#' data(Tan_et_al_cell_line_M_signature)
+#' geneList_M <- data.frame(GeneName = Tan_et_al_cell_line_M_signature)
+#' p <- plot_heatmap_function(t(geneExp), geneList_M)
+#' }
 #' @export
 #'
 
@@ -274,8 +284,8 @@ plot_heatmap_function <- function(geneExp,geneList_M)
   
   # Get the top genes based on pcs
   result = data.frame(pc_feature_M$rotation)
-  PC1_gname = rownames(result[order(-result$PC1),])[1:10]
-  PC2_gname = rownames(result[order(-result$PC2),])[1:10]
+  PC1_gname = rownames(result[order(-result$PC1),])[seq_len(10)]
+  PC2_gname = rownames(result[order(-result$PC2),])[seq_len(10)]
   
   # Extract expression data for top genes
   PC1_gname_Exp = geneExp[, colnames(geneExp) %in% PC1_gname]

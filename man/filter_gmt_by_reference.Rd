@@ -26,8 +26,8 @@ Fraction of overlapping genes.}
 
 \item{keep_low_overlap}{Logical (default `TRUE`):
 \itemize{
-  \item `TRUE`  – keep gene sets with overlap < `cutoff` (remove redundant sets)
-  \item `FALSE` – keep gene sets with overlap >= `cutoff` (keep similar sets)
+  \item `TRUE`  keep gene sets with overlap < `cutoff` (remove redundant sets)
+  \item `FALSE` keep gene sets with overlap >= `cutoff` (keep similar sets)
 }}
 
 \item{min_genes}{Integer. Minimum number of genes required in a set
@@ -50,7 +50,7 @@ By default, only novel and non-redundant gene sets are kept
 \examples{
 ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt", package = "EMTscore")
 target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-output_gmt = "filtered_target.gmt"
+output_gmt <- tempfile(fileext = ".gmt")
 # Keep only gene sets that share < 30 \% genes with TianLab EMT collection
 filter_gmt_by_reference(
   ref_gmt,

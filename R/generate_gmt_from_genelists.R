@@ -17,7 +17,7 @@
 #'   EMT_High = c("VIM", "ZEB1", "SNAI1"),
 #'   EMT_Low  = c("CDH1", "OCLN", "DSP")
 #' )
-#' write_gmt(gene_sets, "EMT_signature.gmt")
+#' write_gmt(gene_sets, file = tempfile(fileext = ".gmt"))
 #'
 write_gmt <- function(gene_sets, file) {
   if (!is.list(gene_sets) || is.null(names(gene_sets))) {
@@ -28,7 +28,7 @@ write_gmt <- function(gene_sets, file) {
   gmt_lines <- lapply(names(gene_sets), function(name) {
     genes <- gene_sets[[name]]
     if (!is.character(genes)) {
-      stop(paste("Each gene set must be a character vector. Problem at:", name))
+      stop("Each gene set must be a character vector. Problem at: ", name)
     }
     # Use name as both set name and description (second field)
     line <- paste(c(name, name, genes), collapse = "\t")

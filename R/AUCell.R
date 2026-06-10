@@ -51,16 +51,16 @@ return(out)
 #' result <- Execute_AUCell(geneExp, gmt_file, score_names = "score")
 Execute_AUCell <- function(exprMatrix,Genesets,score_names)
 {
-	genes = unlist(read_gmt(Genesets)$gene)
-	AUCellMethod = AUCellfunc(exprMatrix,genes)
-	if(nrow(AUCellMethod) == ncol(exprMatrix))
-	{
-		Samples = AUCellMethod$SampleID
-		AUCellMethod = data.frame(AUCellMethod[,-1])
-		AUCellMethod = data.frame(t(AUCellMethod))
-		names(AUCellMethod) = Samples
-		result = data.frame(t(AUCellMethod))
-		colnames(result) <- score_names
-		return(result)
-	}
+  genes = unlist(read_gmt(Genesets)$gene)
+  AUCellMethod = AUCellfunc(exprMatrix,genes)
+  if(nrow(AUCellMethod) == ncol(exprMatrix))
+  {
+    Samples = AUCellMethod$SampleID
+    AUCellMethod = data.frame(AUCellMethod[,-1])
+    AUCellMethod = data.frame(t(AUCellMethod))
+    names(AUCellMethod) = Samples
+    result = data.frame(t(AUCellMethod))
+    colnames(result) <- score_names
+    return(result)
+  }
 }

@@ -8,7 +8,7 @@ add_EMT_score_Bulk(
   expr_mat_list,
   gmt_file = NULL,
   emt_name,
-  method = c("nnPCA", "AUCell", "ssGSEA", "SCSE", "JASMINE"),
+  method = c("nnPCA", "AUCell", "ssGSEA", "SCSE", "GSVA", "JASMINE"),
   dimension
 )
 }
@@ -24,7 +24,7 @@ contain EMT-related genes used by the scoring functions.}
 \item{emt_name}{Character. Column name to use for the EMT score in the
 returned data.frames. Default: \code{"EMT_Score"}.}
 
-\item{method}{Character. One of \code{"nnPCA"}, \code{"AUCell"},
+\item{method}{Character. One of \code{"nnPCA"}, \code{"AUCell"},\code{"GSVA"},
 \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}. Default selects the
 first value.}
 
@@ -38,7 +38,7 @@ If a single matrix is provided, a \code{data.frame} with rownames =
   \code{data.frame}s (one per input matrix) is returned.
 }
 \description{
-Calculate EMT (epithelial–mesenchymal transition) scores for bulk RNA-seq
+Calculate EMT (epithelial-mesenchymal transition) scores for bulk RNA-seq
 expression data. The function accepts a single expression matrix (rows = genes,
 columns = samples) or a named list of such matrices, and computes EMT scores
 for each sample using one of the supported scoring methods.
@@ -46,11 +46,12 @@ for each sample using one of the supported scoring methods.
 \details{
 Supported methods:
 \itemize{
-  \item \code{"nnPCA"} — non-negative sparse PCA (via \code{nsprcomp})
-  \item \code{"AUCell"} — AUCell AUC scoring
-  \item \code{"ssGSEA"} — single-sample GSEA (GSVA)
-  \item \code{"SCSE"} — Single-Cell Signature Explorer (adapted)
-  \item \code{"JASMINE"} — JASMINE scoring
+  \item \code{"nnPCA"} - non-negative sparse PCA (via \code{nsprcomp})
+  \item \code{"AUCell"} - AUCell AUC scoring
+  \item \code{"ssGSEA"} - single-sample GSEA
+  \item \code{"GSVA"}
+  \item \code{"SCSE"} - Single-Cell Signature Explorer (adapted)
+  \item \code{"JASMINE"} - JASMINE scoring
 }
 
 
@@ -59,7 +60,7 @@ Supported methods:
 - If none of the GMT genes are present in a matrix a warning is issued and
   that matrix returns \code{NULL} in the result list.
 - The scoring helpers (\code{Execute_nnPCA}, \code{Execute_AUCell},
-  \code{Execute_ssGSVA}, \code{Execute_SCSE}, \code{Execute_JAS}) are assumed
+  \code{Execute_ssGSEA}, \code{Execute_SCSE}, \code{Execute_JAS}) are assumed
   available in the package namespace (or the environment) and must return a
   data.frame with sample rows and the score column name given in
   \code{score_names}.
@@ -71,10 +72,12 @@ destfile <- tempfile(fileext = ".rda")
 download.file(url, destfile, mode = "wb")
 load(destfile)
 gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-res <- add_EMT_score_Bulk(expr_mat = geneExp, gmt_file, emt_name = "EMT", method = "AUCell", dimension = 1)
+res <- add_EMT_score_Bulk(expr_mat_list = list(s = geneExp), gmt_file,
+  emt_name = "EMT", method = "AUCell", dimension = 1)
 
 # multiple matrices (named list)
 exprs <- list(TCGA = geneExp, GTEX = geneExp)
-res_list <- add_EMT_score_Bulk(expr_mat_list = exprs, gmt_file, emt_name = "EMT", method = "nnPCA", dimension = 1)
+res_list <- add_EMT_score_Bulk(expr_mat_list = exprs, gmt_file,
+  emt_name = "EMT", method = "nnPCA", dimension = 1)
 
 }

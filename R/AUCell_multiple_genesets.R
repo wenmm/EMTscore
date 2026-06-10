@@ -65,7 +65,7 @@ Execute_AUCell_parallel <- function(exprMatrix, gmt_file, cores) {
   GSsize <- length(Genesets$genesets)
   
   #---------------- Run AUCell in parallel ----------------#
-  Combine_AUCellResult <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_AUCellResult <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
     message("Processing pathway ", k, "/", GSsize, ": ", Genesets$geneset.names[k])
     Execute_AUCell(exprMatrix, Genesets, k)
   }

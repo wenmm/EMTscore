@@ -1,6 +1,6 @@
 #' Add EMT Scores to Seurat or SCE Objects
 #'
-#' This function calculates epithelial–mesenchymal transition (EMT) scores
+#' This function calculates epithelial-mesenchymal transition (EMT) scores
 #' for one or more single-cell objects using multiple scoring methods.
 #' Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 #' \code{"GSVA"}, \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
@@ -14,9 +14,18 @@
 #'   \code{"ssGSEA"}, \code{"SCSE"}, or \code{"JASMINE"}.
 #' @param nnPCA_dim Integer. Dimension for nnPCA (default = 1).
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2 Seurat data.table nsprcomp EMTscoreData
+#' @import ExperimentHub Matrix ggplot2 nsprcomp EMTscoreData
 #' @return A named list of Seurat objects with a new metadata column containing EMT scores.
-#' 
+#' @examples
+#' \donttest{
+#' library(ExperimentHub)
+#' eh <- ExperimentHub()
+#' A549_TGFB1 <- eh[["EH10293"]]
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' objects <- list(A549_TGFB1 = A549_TGFB1)
+#' res <- add_EMT_score(objects, gmt_file, emt_name = "EMT_Score",
+#'   method = "AUCell")
+#' }
 #' @export
 
 add_EMT_score <- function(objects,
@@ -33,7 +42,7 @@ add_EMT_score <- function(objects,
     
     obj <- objects[[name]]
     
-    # Convert SCE → Seurat
+    # Convert SCE to Seurat
     if (inherits(obj, "SingleCellExperiment")) {
       message("Converting SCE to Seurat: ", name)
       obj <- as.Seurat(obj, data = "logcounts")
@@ -107,7 +116,7 @@ add_EMT_score <- function(objects,
 #' @param nnPCA_dim Integer. Dimension used in nnPCA.
 #' @param cores Integer. Number of CPU cores for parallel computation.
 #'
-#' @import ExperimentHub SummarizedExperiment Matrix patchwork dplyr ggplot2  Seurat data.table nsprcomp
+#' @import ExperimentHub Matrix ggplot2 nsprcomp EMTscoreData
 #' @return A named list of Seurat objects with multiple EMT score columns added.
 #' @examples
 #' library(ExperimentHub)
@@ -233,7 +242,17 @@ add_EMT_score_multiple <- function(objects, gmt_file, emt_names = NULL,
 #' @return A \code{ggplot} object showing smoothed EMT score trajectories along pseudotime 
 #'   for each condition.
 #'
-#' 
+#' @examples
+#' \donttest{
+#' library(ExperimentHub)
+#' eh <- ExperimentHub()
+#' A549_TGFB1 <- eh[["EH10293"]]
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' objs <- add_EMT_score(list(A549_TGFB1 = A549_TGFB1), gmt_file,
+#'   emt_name = "EMT_Score", method = "AUCell")
+#' p <- plot_EMT_from_objects(objs, col_name = "nCount_RNA",
+#'   emt_score_col = "EMT_Score")
+#' }
 #' @export
 
 plot_EMT_from_objects <- function(obj_list, col_name,

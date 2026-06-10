@@ -9,7 +9,7 @@
 #'
 #' @return A data frame containing GSVA scores for each pathway across samples. Each row corresponds to a pathway with an additional `Pathway` column.
 #' @export
-#' @import GSVA GSA foreach doParallel stringr curl
+#' @import GSVA GSA foreach doParallel stringr
 #'
 #' @examples
 #' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
@@ -48,7 +48,7 @@ Execute_GSVA_parallel <- function(exprMatrix, gmt_file, cores) {
   }
   
   #----------- Parallel computation -----------#
-  Combine_GSVA <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_GSVA <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
     Compute_GSVA(exprMatrix, Genesets, k)
   }
   

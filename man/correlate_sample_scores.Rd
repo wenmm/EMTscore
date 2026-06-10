@@ -36,6 +36,10 @@ It finds the intersection of sample names (row names) between the two dataframes
 and performs correlation analysis between every pair of numeric score columns.
 }
 \examples{
-# score_mat1: pathway scores per sample; score_mat2: EMT signature scores per sample
-NULL
+set.seed(1)
+ids <- paste0("sample", seq_len(20))
+score_mat1 <- data.frame(PathwayA = rnorm(20), PathwayB = rnorm(20),
+  row.names = ids)
+score_mat2 <- data.frame(EMT = rnorm(20), row.names = ids)
+correlate_sample_scores(score_mat1, score_mat2, method = "pearson")
 }

@@ -30,8 +30,19 @@ that have already been loaded in the R session.}
 A named list of Seurat objects with a new metadata column containing EMT scores.
 }
 \description{
-This function calculates epithelial–mesenchymal transition (EMT) scores
+This function calculates epithelial-mesenchymal transition (EMT) scores
 for one or more single-cell objects using multiple scoring methods.
 Supported methods include \code{"Seurat"}, \code{"nnPCA"}, \code{"AUCell"},
 \code{"GSVA"}, \code{"ssGSEA"}, \code{"SCSE"}, and \code{"JASMINE"}.
+}
+\examples{
+\donttest{
+library(ExperimentHub)
+eh <- ExperimentHub()
+A549_TGFB1 <- eh[["EH10293"]]
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+objects <- list(A549_TGFB1 = A549_TGFB1)
+res <- add_EMT_score(objects, gmt_file, emt_name = "EMT_Score",
+  method = "AUCell")
+}
 }

@@ -18,7 +18,7 @@
 #' download.file(url, destfile, mode = "wb")
 #' load(destfile)
 #' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 2)
+#' result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 1)
 
 Execute_nnPCA_parallel <- function(exprMatrix, Genesets, dimension, cores) {
   # Load gene sets
@@ -29,7 +29,7 @@ Execute_nnPCA_parallel <- function(exprMatrix, Genesets, dimension, cores) {
   registerDoParallel(cores)
   
   # Parallel nnPCA computation
-  CombinennPCA <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
+  CombinennPCA <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
     genes <- unlist(Genesets_obj$genesets[k])
     pathwayName <- Genesets_obj$geneset.names[k]
     

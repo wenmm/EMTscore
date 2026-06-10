@@ -9,13 +9,14 @@
 #' @param method Character, either "GMM" (Gaussian Mixture Model) or "Kmeans" for clustering. Default is "GMM".
 #' @param n_clusters Numeric, number of clusters for Kmeans. Ignored if method = "GMM".
 #' @param PC_name Character vector of length 2 specifying the column names for Escore and Mscore. Default is c("Escore", "Mscore").
-#' @import mclust
 #'
 #' @return A named character vector of cluster labels for each sample.
 #' @examples
 #' data(nnPCA_Result_multiple)
-#' labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore"))
-#' labels_km  <- predict_cluster_labels(nnPCA_Result_multiple, method = "Kmeans", n_clusters = 3,PC_name = c("Escore", "Mscore"))
+#' labels_gmm <- predict_cluster_labels(nnPCA_Result_multiple,
+#'   method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore"))
+#' labels_km <- predict_cluster_labels(nnPCA_Result_multiple,
+#'   method = "Kmeans", n_clusters = 3, PC_name = c("Escore", "Mscore"))
 #' @export
 predict_cluster_labels <- function(pca_result, method = "GMM", n_clusters = 3, PC_name = c("Escore", "Mscore")) {
   
@@ -42,7 +43,7 @@ predict_cluster_labels <- function(pca_result, method = "GMM", n_clusters = 3, P
     E_cluster <- which.max(cluster_center_Mean[, "Escore"])
     M_cluster <- which.max(cluster_center_Mean[, "Mscore"])
     all_clusters <- rownames(cluster_center_Mean)
-    if (is.null(all_clusters)) all_clusters <- as.character(1:nrow(cluster_center_Mean))
+    if (is.null(all_clusters)) all_clusters <- as.character(seq_len(nrow(cluster_center_Mean)))
   }
   
   other_clusters <- setdiff(all_clusters, c(E_cluster, M_cluster))

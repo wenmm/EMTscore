@@ -75,7 +75,7 @@ Execute_JASMINE_parallel <- function(exprMatrix, gmt_file, cores) {
   GSsize <- length(Genesets$genesets)
   
   #----------- Parallel computation -----------#
-  Combine_JASMINE <- foreach(k = 1:GSsize, .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_JASMINE <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
     genes <- unlist(Genesets$genesets[k])
     pathwayName <- Genesets$geneset.names[k]
     res <- tryCatch({

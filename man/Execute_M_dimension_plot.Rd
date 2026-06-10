@@ -28,7 +28,7 @@ Execute_M_dimension_plot(
 A ggplot object.
 }
 \description{
-Scatter plot of two M scores with mean ± SD per cell type.
+Scatter plot of two M scores with mean +/- SD per cell type.
 }
 \examples{
 data(cell_annotation_file)

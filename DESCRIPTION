@@ -1,8 +1,8 @@
 Package: EMTscore
 Type: Package
 Title: Calculate EMT Scores Based on Omics Data
-Version: 0.99.5
-Date: 2026-07-09
+Version: 0.99.6
+Date: 2026-07-10
 Authors@R: c(
     person(given = "Haimei", family = "Wen",
            email = "hudie.luoluo@gmail.com", role = c("aut", "cre"),
@@ -43,7 +43,6 @@ Encoding: UTF-8
 biocViews: Software, GeneExpression, GeneSetEnrichment, SingleCell,
     Transcriptomics, Visualization, RNASeq, DimensionReduction,
     PrincipalComponent, MultipleComparison
-BiocType: Software
 Imports:
     AUCell,
     BiocParallel,

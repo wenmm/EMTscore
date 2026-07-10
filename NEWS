@@ -1,3 +1,9 @@
+CHANGES IN VERSION 0.99.6
+-------------------------
+o Removed the non-standard 'BiocType' DESCRIPTION field that triggered an
+  "Unknown or non-standard DESCRIPTION field(s)" warning in R CMD check; the
+  package is already declared as Software via biocViews.
+
 CHANGES IN VERSION 0.99.5
 -------------------------
 o Further Bioconductor review responses:

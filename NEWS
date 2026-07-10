@@ -1,3 +1,9 @@
+CHANGES IN VERSION 0.99.7
+-------------------------
+o Subset the bundled filtered.c2.gmt gene-set file to 500 representative
+  pathways so the vignette (and R CMD check) completes well within the
+  10-minute time limit; the pathway-correlation example is unchanged in spirit.
+
 CHANGES IN VERSION 0.99.6
 -------------------------
 o Removed the non-standard 'BiocType' DESCRIPTION field that triggered an

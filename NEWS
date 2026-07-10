@@ -1,3 +1,9 @@
+CHANGES IN VERSION 0.99.8
+-------------------------
+o Version bump to re-trigger the build after a transient missing-dependency
+  error (GSVA / ScaledMatrix / BiocSingular) on the Bioconductor build system;
+  no package code changes.
+
 CHANGES IN VERSION 0.99.7
 -------------------------
 o Subset the bundled filtered.c2.gmt gene-set file to 500 representative

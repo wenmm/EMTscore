@@ -18,13 +18,8 @@ Figure represent EMT score for different methods and gene sets
 present result of heat map of genes that contribute to M score of dimension 1 and disension 2
 }
 \examples{
-\donttest{
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
+data(geneExp)
 data(Tan_et_al_cell_line_M_signature)
-geneList_M <- data.frame(GeneName = Tan_et_al_cell_line_M_signature)
+geneList_M <- Tan_et_al_cell_line_M_signature
 p <- plot_heatmap_function(t(geneExp), geneList_M)
-}
 }

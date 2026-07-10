@@ -23,10 +23,7 @@ This function reads a GMT gene set file and performs non-negative sparse PCA (nn
 for each gene set in parallel, returning a combined data frame of pathway scores.
 }
 \examples{
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
-gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+data(geneExp)
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 result <- Execute_nnPCA_parallel(geneExp, gmt_file, dimension = 1, cores = 1)
 }

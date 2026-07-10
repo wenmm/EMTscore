@@ -1,4 +1,5 @@
 ^doc$
 ^Meta$
-^Figure1\.png$
 ^LICENSE$
+^.*\.BiocCheck$
+^EMTscore_rmd\.RData$

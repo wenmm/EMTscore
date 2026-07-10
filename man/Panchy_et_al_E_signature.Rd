@@ -3,21 +3,24 @@
 \docType{data}
 \name{Panchy_et_al_E_signature}
 \alias{Panchy_et_al_E_signature}
-\title{Panchy_et_al_E_signature}
+\title{Panchy et al. epithelial signature}
 \format{
-E gene list from Panchy_et_al
-\describe{
-  E gene
+A character vector of epithelial-state gene symbols.
 }
+\source{
+Epithelial marker gene list curated from Panchy et al. Gene symbols
+  were extracted from the published EMT signature; no further processing was
+  applied.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
 }
 \usage{
 data(Panchy_et_al_E_signature)
 }
 \description{
-This is an example dataset.
+Epithelial (E) marker gene set curated from Panchy et al., provided as an
+example EMT signature.
 }
 \examples{
 data(Panchy_et_al_E_signature)
-
 }
 \keyword{datasets}

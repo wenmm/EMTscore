@@ -7,6 +7,11 @@
 \format{
 A list of Hallmark gene sets, each a character vector of gene symbols.
 }
+\source{
+Hallmark (H) gene set collection from the Molecular Signatures
+  Database (MSigDB, \url{https://www.gsea-msigdb.org/gsea/msigdb}).
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(MSigDB_Hallmark)
 }

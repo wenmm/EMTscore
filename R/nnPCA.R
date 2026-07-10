@@ -1,4 +1,3 @@
-
 #' Execute Non-Negative Sparse PCA (nnPCA) Scoring
 #'
 #' Execute nnPCA Scoring from GMT File
@@ -12,28 +11,22 @@
 #' @return Data frame of samples with nnPCA scores.
 #'
 #' @export
-#' @import GSA stringr nsprcomp
-#' 
+#' @importFrom nsprcomp nsprcomp
+#'
 #' @examples
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
+#' data(geneExp)
 #' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-#' result <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "score")
-
-Execute_nnPCA <- function(exprMatrix, Genesets, dimension, score_names)
-{
+#' result <- Execute_nnPCA(geneExp, gmt_file, dimension = 1, score_names = "score")
+Execute_nnPCA <- function(exprMatrix, Genesets, dimension, score_names) {
   exprMatrix <- t(exprMatrix)
   genes <- unlist(read_gmt(Genesets)$gene)
   geneExp <- exprMatrix[, colnames(exprMatrix) %in% genes]
-  
-  if(ncol(geneExp) == 0){
+
+  if (ncol(geneExp) == 0) {
     stop("No matching genes found in the expression matrix. Please check that the species and the capitalization of gene names in your expression matrix match those in the provided signature gene list.")
   }
-  
-  #pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension, scale. = TRUE)
-  pc_feature <- nsprcomp(as.matrix(geneExp), nneg=TRUE, ncomp=dimension)
+
+  pc_feature <- nsprcomp::nsprcomp(as.matrix(geneExp), nneg = TRUE, ncomp = dimension)
   dfpc <- data.frame(pc_feature$x)
   dfpc[is.na(dfpc)] <- 0
   colnames(dfpc) <- score_names

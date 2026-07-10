@@ -9,49 +9,39 @@
 #'
 #' @return A data frame containing GSVA scores for each pathway across samples. Each row corresponds to a pathway with an additional `Pathway` column.
 #' @export
-#' @import GSVA GSA foreach doParallel stringr
+#' @importFrom GSVA gsvaParam gsva
+#' @importFrom GSA GSA.read.gmt
 #'
 #' @examples
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
-#' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_GSVA_parallel(geneExp, gmt_file, cores = 2)
-
+#' data(geneExp)
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' result <- Execute_GSVA_parallel(geneExp, gmt_file, cores = 1)
 Execute_GSVA_parallel <- function(exprMatrix, gmt_file, cores) {
-  
-  registerDoParallel(cores)
-  
+
   #----------- Read gene sets -----------#
   Genesets <- GSA.read.gmt(gmt_file)
   GSsize <- length(Genesets$genesets)
-  
+
   #----------- Wrapper for one gene set -----------#
   Compute_GSVA <- function(exprMatrix, Genesets, k) {
     geneslist <- unlist(Genesets$genesets[k])
     pathwayName <- Genesets$geneset.names[k]
-    
+
     gsva_geneSets <- GSEABase::GeneSetCollection(
       GSEABase::GeneSet(geneslist, setName = pathwayName)
     )
     gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
-    res <- tryCatch({
-      Result <- gsva(gsvaPar, verbose = FALSE)
-      Result <- data.frame(Result)
-      Result$Pathway <- pathwayName
-      return(Result)
-    }, error = function(e) {
-      NULL
-    })
-    return(res)
+    Result <- gsva(gsvaPar, verbose = FALSE)
+    Result <- data.frame(Result)
+    Result$Pathway <- pathwayName
+    return(Result)
   }
-  
+
   #----------- Parallel computation -----------#
-  Combine_GSVA <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_GSVA <- bind_genesets_parallel(GSsize, function(k) {
     Compute_GSVA(exprMatrix, Genesets, k)
-  }
-  
+  }, cores)
+
   # Remove empty rows if any
   if (nrow(Combine_GSVA) == 0) {
     message("NULL result")

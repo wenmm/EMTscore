@@ -1,11 +1,11 @@
 #' Write Gene Sets to a GMT File
 #'
-#' Convert multiple gene lists into a single GMT (Gene Matrix Transposed) formatted file.  
-#' Each element of the input list represents one gene set, where the element name  
+#' Convert multiple gene lists into a single GMT (Gene Matrix Transposed) formatted file.
+#' Each element of the input list represents one gene set, where the element name
 #' is the gene set name and the element value is a vector of gene symbols.
 #'
-#' @param gene_sets A named list of gene sets. Each element should be a character vector  
-#'        containing gene symbols, and each list name will be used as the gene set name.  
+#' @param gene_sets A named list of gene sets. Each element should be a character vector
+#'        containing gene symbols, and each list name will be used as the gene set name.
 #'        Example: \code{list(Pathway1 = c("TP53", "BRCA1"), Pathway2 = c("EGFR", "MYC"))}
 #' @param file A character string specifying the output GMT file path (e.g. "output.gmt").
 #'
@@ -23,7 +23,7 @@ write_gmt <- function(gene_sets, file) {
   if (!is.list(gene_sets) || is.null(names(gene_sets))) {
     stop("gene_sets must be a *named* list of gene vectors.")
   }
-  
+
   # Construct GMT lines: "name<TAB>description<TAB>gene1<TAB>gene2..."
   gmt_lines <- lapply(names(gene_sets), function(name) {
     genes <- gene_sets[[name]]
@@ -34,7 +34,7 @@ write_gmt <- function(gene_sets, file) {
     line <- paste(c(name, name, genes), collapse = "\t")
     return(line)
   })
-  
+
   # Write to file
   writeLines(unlist(gmt_lines), con = file, useBytes = TRUE)
 }

@@ -42,7 +42,9 @@ eh <- ExperimentHub()
 A549_TGFB1 <- eh[["EH10293"]]
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 objects <- list(A549_TGFB1 = A549_TGFB1)
-res <- add_EMT_score(objects, gmt_file, emt_name = "EMT_Score",
-  method = "AUCell")
+res <- add_EMT_score(objects, gmt_file,
+  emt_name = "EMT_Score",
+  method = "AUCell"
+)
 }
 }

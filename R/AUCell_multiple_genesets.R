@@ -11,40 +11,28 @@
 #'
 #' @return A data frame containing AUCell scores for each pathway across samples.
 #' @export
-#' @import AUCell foreach doParallel GSA stringr
+#' @importFrom AUCell AUCell_buildRankings AUCell_calcAUC getAUC
+#' @importFrom GSA GSA.read.gmt
 #'
 #' @examples
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
-#' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 2)
-
+#' data(geneExp)
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' result <- Execute_AUCell_parallel(geneExp, gmt_file, cores = 1)
 Execute_AUCell_parallel <- function(exprMatrix, gmt_file, cores) {
-  stringsAsFactors <- FALSE
-  registerDoParallel(cores)
-  
+
   #---------------- AUCell scoring function for one gene set ----------------#
   AUCellfunc <- function(exprMatrix, genes) {
-    out <- tryCatch({
-      cells_rankings <- AUCell_buildRankings(exprMatrix, plotStats = FALSE)
-      geneSets <- list(geneSet1 = genes)
-      cells_AUC <- AUCell_calcAUC(geneSets, cells_rankings, aucMaxRank = nrow(cells_rankings) * 0.05)
-      cellsAUCretrieve <- getAUC(cells_AUC)
-      cells_AUCellScores <- t(cellsAUCretrieve)
-      cells_AUCellScores <- data.frame(rownames(cells_AUCellScores), cells_AUCellScores)
-      colnames(cells_AUCellScores) <- c("SampleID", "AUCell")
-      row.names(cells_AUCellScores) <- NULL
-      return(cells_AUCellScores)
-    },
-    error = function(cond) {
-      cells_AUCellScores <- data.frame(SampleID = "NA", AUCell = "NA")
-      return(cells_AUCellScores)
-    })
-    return(out)
+    cells_rankings <- AUCell_buildRankings(exprMatrix, plotStats = FALSE)
+    geneSets <- list(geneSet1 = genes)
+    cells_AUC <- AUCell_calcAUC(geneSets, cells_rankings, aucMaxRank = nrow(cells_rankings) * 0.05)
+    cellsAUCretrieve <- getAUC(cells_AUC)
+    cells_AUCellScores <- t(cellsAUCretrieve)
+    cells_AUCellScores <- data.frame(rownames(cells_AUCellScores), cells_AUCellScores)
+    colnames(cells_AUCellScores) <- c("SampleID", "AUCell")
+    row.names(cells_AUCellScores) <- NULL
+    return(cells_AUCellScores)
   }
-  
+
   #---------------- Function to execute AUCell ----------------#
   Execute_AUCell <- function(exprMatrix, Genesets, k) {
     genes <- unlist(Genesets$genesets[k])
@@ -59,17 +47,17 @@ Execute_AUCell_parallel <- function(exprMatrix, gmt_file, cores) {
       return(AUCellMethod)
     }
   }
-  
+
   #---------------- Read gene sets ----------------#
   Genesets <- GSA.read.gmt(gmt_file)
   GSsize <- length(Genesets$genesets)
-  
+
   #---------------- Run AUCell in parallel ----------------#
-  Combine_AUCellResult <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_AUCellResult <- bind_genesets_parallel(GSsize, function(k) {
     message("Processing pathway ", k, "/", GSsize, ": ", Genesets$geneset.names[k])
     Execute_AUCell(exprMatrix, Genesets, k)
-  }
-  
+  }, cores)
+
   rownames(Combine_AUCellResult) <- Combine_AUCellResult$Pathway
   Combine_AUCellResult$Pathway <- NULL
   Combine_AUCellResult

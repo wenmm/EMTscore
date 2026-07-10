@@ -20,12 +20,18 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Haimei Wen \email{hudie.luoluo@gmail.com}
+\strong{Maintainer}: Haimei Wen \email{hudie.luoluo@gmail.com} (\href{https://orcid.org/0009-0006-1600-1210}{ORCID})
 
 Authors:
 \itemize{
   \item Daniel Lopez
   \item Tian Hong
+}
+
+Other contributors:
+\itemize{
+  \item National Institutes of Health (R35GM149531) [funder]
+  \item National Science Foundation (2243562) [funder]
 }
 
 }

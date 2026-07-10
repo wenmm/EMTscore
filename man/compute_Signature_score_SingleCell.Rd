@@ -10,27 +10,27 @@ compute_Signature_score_SingleCell(objects, signature_files, score_names)
 \item{objects}{A named list of Seurat or SingleCellExperiment objects
 Each file will be read, updated, and annotated with computed signature scores.}
 
-\item{signature_files}{A character vector of paths to signature weight files 
-(two-column `.tsv` or `.txt` files with gene symbols and weights). 
+\item{signature_files}{A character vector of paths to signature weight files
+(two-column `.tsv` or `.txt` files with gene symbols and weights).
 Multiple files can be provided.}
 
-\item{score_names}{A character vector of names for the resulting score columns. 
+\item{score_names}{A character vector of names for the resulting score columns.
 Must have the same length as `signature_files`.}
 }
 \value{
-A named list of Seurat objects, each containing new metadata columns corresponding 
+A named list of Seurat objects, each containing new metadata columns corresponding
 to the computed signature scores.
 }
 \description{
-This function calculates one or more gene signature scores for single-cell datasets 
-stored as Seurat or SingleCellExperiment (SCE) objects. Each score is computed using Spearman correlation 
+This function calculates one or more gene signature scores for single-cell datasets
+stored as Seurat or SingleCellExperiment (SCE) objects. Each score is computed using Spearman correlation
 between gene expression profiles and signature weights, followed by min-max normalization.
 The resulting scores are added to the Seurat object metadata.
 }
 \details{
-Each signature score is calculated by computing the Spearman correlation 
-between the normalized expression of genes and their corresponding signature weights. 
-The resulting scores are then scaled to a 0-1 range and stored in the Seurat 
+Each signature score is calculated by computing the Spearman correlation
+between the normalized expression of genes and their corresponding signature weights.
+The resulting scores are then scaled to a 0-1 range and stored in the Seurat
 object metadata under the specified names.
 }
 \examples{
@@ -41,5 +41,6 @@ signature_file1 <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 signature_file2 <- system.file("extdata", "cellular_senescence_sig.tsv", package = "EMTscore")
 signature_files <- c(signature_file1, signature_file2)
 result <- compute_Signature_score_SingleCell(files, signature_files,
-  score_names = c("Stemness_Score", "Senescence_Score"))
+  score_names = c("Stemness_Score", "Senescence_Score")
+)
 }

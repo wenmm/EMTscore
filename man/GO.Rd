@@ -7,6 +7,11 @@
 \format{
 A list of gene sets, each a character vector of gene symbols.
 }
+\source{
+EMT-related gene sets derived from the Gene Ontology (GO) database
+  (\url{http://geneontology.org}).
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(GO)
 }

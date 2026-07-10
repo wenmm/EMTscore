@@ -1,25 +1,23 @@
 #' Read GMT File and Extract Genes
 #'
-#' This function reads a GMT (Gene Matrix Transposed) file and extracts all unique genes
-#' across all gene sets.
+#' This function reads a GMT (Gene Matrix Transposed) file with
+#' \code{GSEABase::getGmt()} and extracts all unique genes across all gene sets.
 #'
 #' @param fname Character string. Path to the GMT file.
 #'
-#' @return A data frame with a single column \code{gene}, containing all unique genes.
+#' @return A data frame with a single column \code{gene}, containing all unique
+#'   genes.
 #'
 #' @examples
 #' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-#'
 #' genes <- read_gmt(gmt_file)
 #'
+#' @importFrom GSEABase getGmt geneIds
 #' @export
-
-read_gmt <- function(fname){
-  gmt_lines <- readLines(fname)
-  gmt_list <- lapply(gmt_lines, function(x) unlist(strsplit(x, split="\t")))
-  gmt_genes <- lapply(gmt_list, function(x) x[seq(3, length(x))])
-  genes <- unique(unlist(gmt_genes))
-  return(data.frame(gene = genes, stringsAsFactors = FALSE))
+read_gmt <- function(fname) {
+  gsc <- GSEABase::getGmt(fname)
+  genes <- unique(unlist(GSEABase::geneIds(gsc), use.names = FALSE))
+  data.frame(gene = genes, stringsAsFactors = FALSE)
 }
 
 #' Filter a GMT file by overlap with a reference GMT
@@ -50,13 +48,16 @@ read_gmt <- function(fname){
 #'   \item{overlap}{Number of genes present in the reference GMT}
 #'   \item{fraction}{`overlap / size`}
 #'
+#' @importFrom GSEABase getGmt geneIds toGmt setName
 #' @export
 #'
 #' @examples
-#' ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt", package = "EMTscore")
-#' target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+#' ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt",
+#'   package = "EMTscore")
+#' target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt",
+#'   package = "EMTscore")
 #' output_gmt <- tempfile(fileext = ".gmt")
-#' # Keep only gene sets that share < 30 % genes with TianLab EMT collection
+#' # Keep only gene sets that share < 50 % genes with the TianLab EMT collection
 #' filter_gmt_by_reference(
 #'   ref_gmt,
 #'   target_gmt,
@@ -64,99 +65,49 @@ read_gmt <- function(fname){
 #'   cutoff = 0.50,
 #'   keep_low_overlap = TRUE
 #' )
-filter_gmt_by_reference <- function(ref_gmt, 
-                                    target_gmt, 
-                                    output_gmt, 
+filter_gmt_by_reference <- function(ref_gmt,
+                                    target_gmt,
+                                    output_gmt,
                                     cutoff = 0.5,
                                     keep_low_overlap = TRUE,
                                     min_genes = 5) {
-  
-  message("=== GMT Filtering ===\n")
-  
-  # ---- Safe reading function (handles Windows/Mac/UTF-8 issues) ----
-  safe_read_gmt <- function(path) {
-    message("Reading:", path)
-    if (!file.exists(path)) stop("File not found: ", path)
-    
-    lines <- tryCatch({
-      readLines(path, encoding = "UTF-8", warn = FALSE)
-    }, error = function(e) {
-      message("  UTF-8 failed, trying latin1...")
-      readLines(path, encoding = "latin1", warn = FALSE)
-    })
-    message("Success: ", length(lines), " lines loaded\n")
-    return(lines)
-  }
-  
-  ref_lines    <- safe_read_gmt(ref_gmt)
-  target_lines <- safe_read_gmt(target_gmt)
-  
-  # ---- Build reference gene universe ----
-  ref_genes <- character()
-  for (line in ref_lines) {
-    line <- trimws(line)
-    if (line == "" || grepl("^#", line)) next
-    parts <- strsplit(line, "\t")[[1]]
-    if (length(parts) > 2) {
-      ref_genes <- c(ref_genes, parts[-seq_len(2)])
-    }
-  }
-  ref_genes <- unique(ref_genes)
-  message("Unique genes in reference GMT: ", length(ref_genes), "\n")
-  
-  # ---- Process target GMT ----
-  kept <- character()
-  stats <- data.frame(name = character(), size = integer(), 
-                      overlap = integer(), fraction = numeric(), 
-                      stringsAsFactors = FALSE)
-  
-  for (line in target_lines) {
-    line <- trimws(line)
-    if (line == "" || grepl("^#", line)) next
-    parts <- strsplit(line, "\t")[[1]]
-    if (length(parts) < 3) next
-    
-    gs_name  <- parts[1]
-    gs_genes <- parts[-seq_len(2)]
-    gs_genes <- gs_genes[gs_genes != "" & !is.na(gs_genes)]
-    
-    if (length(gs_genes) < min_genes) next
-    
-    overlap_n    <- sum(gs_genes %in% ref_genes)
-    overlap_frac <- overlap_n / length(gs_genes)
-    
-    stats <- rbind(stats, data.frame(name = gs_name,
-                                     size = length(gs_genes),
-                                     overlap = overlap_n,
-                                     fraction = overlap_frac))
-    
-    if (keep_low_overlap) {
-      if (overlap_frac < cutoff) kept <- c(kept, line)
-    } else {
-      if (overlap_frac >= cutoff) kept <- c(kept, line)
-    }
-  }
-  
-  # ---- Summary ----
+  stopifnot(
+    is.numeric(cutoff), cutoff >= 0, cutoff <= 1,
+    is.logical(keep_low_overlap),
+    is.numeric(min_genes), min_genes >= 0
+  )
+
+  ref_gsc <- GSEABase::getGmt(ref_gmt)
+  target_gsc <- GSEABase::getGmt(target_gmt)
+  ref_genes <- unique(unlist(GSEABase::geneIds(ref_gsc), use.names = FALSE))
+  message("Unique genes in reference GMT: ", length(ref_genes))
+
+  target_ids <- GSEABase::geneIds(target_gsc)
+  sizes <- lengths(target_ids)
+  overlaps <- vapply(target_ids, function(g) sum(g %in% ref_genes), integer(1))
+  fractions <- ifelse(sizes > 0, overlaps / sizes, NA_real_)
+
+  keep <- sizes >= min_genes &
+    if (keep_low_overlap) fractions < cutoff else fractions >= cutoff
+  keep[is.na(keep)] <- FALSE
+
+  stats <- data.frame(
+    name = vapply(target_gsc, GSEABase::setName, character(1)),
+    size = sizes,
+    overlap = overlaps,
+    fraction = fractions,
+    stringsAsFactors = FALSE
+  )
+  stats <- stats[sizes >= min_genes, , drop = FALSE]
+
   if (nrow(stats) == 0) {
     message("No valid gene sets found in target GMT!")
     return(invisible(NULL))
   }
-  
-  message("Overlap fraction distribution:")
-  message(paste(utils::capture.output(summary(stats$fraction)), collapse = "\n"))
-  
-  message("\nTop 10 most similar to reference (highest overlap):")
-  top10 <- head(stats[order(stats$fraction, decreasing = TRUE), ], 10)
-  message(paste(utils::capture.output(top10), collapse = "\n"))
-  
-  # ---- Write output ----
-  writeLines(kept, output_gmt)
-  message("\nDone! ", length(kept), " gene sets saved to: ", output_gmt)
-  
-  if (length(kept) == 0) {
-    message("\nTip: Try a lower cutoff (e.g. 0.2) or set keep_low_overlap = FALSE")
-  }
-  
+
+  GSEABase::toGmt(target_gsc[keep], output_gmt)
+  message("Done: ", sum(keep), " gene sets saved to ", output_gmt)
+
+  rownames(stats) <- NULL
   invisible(stats)
 }

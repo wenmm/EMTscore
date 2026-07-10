@@ -3,21 +3,27 @@
 \docType{data}
 \name{cell_annotation_file}
 \alias{cell_annotation_file}
-\title{cell_annotation_file}
+\title{Cell-line annotation table}
 \format{
-example data
-\describe{
- celltype annotation
+A data.frame with 118 rows and 3 columns: \code{name} (sample
+  identifier, matching the columns of \code{geneExp}), \code{source} (data
+  source, e.g. CCLE), and \code{celltype_annotation} (E/M state label).
 }
+\source{
+Sample-level annotation accompanying the cell-line expression matrix
+  deposited at Zenodo, \doi{10.5281/zenodo.19487376}, subset to the samples
+  retained in \code{\link{geneExp}}.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
 }
 \usage{
 data(cell_annotation_file)
 }
 \description{
-This is a cell type annotation file
+Sample-level annotation for the cell lines in \code{\link{geneExp}}, mapping
+each sample name to its data source and epithelial/mesenchymal cell-type
+label. Used to demonstrate the plotting helpers.
 }
 \examples{
 data(cell_annotation_file)
-
 }
 \keyword{datasets}

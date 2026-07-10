@@ -7,6 +7,12 @@
 \format{
 A character vector of epithelial signature gene symbols.
 }
+\source{
+Tumor epithelial EMT signature curated from Tan et al. Gene symbols
+  were extracted from the published signature; no further processing was
+  applied.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(Tan_et_al_tumor_E_signature)
 }

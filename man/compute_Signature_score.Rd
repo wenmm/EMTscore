@@ -17,15 +17,12 @@ compute_Signature_score(data, signature_file, score_name)
 A numeric matrix (for bulk input) or a Seurat object with a new metadata column (for Seurat input).
 }
 \description{
-This function computes signature scores using Spearman correlation 
-between a predefined gene signature and expression data. It supports 
+This function computes signature scores using Spearman correlation
+between a predefined gene signature and expression data. It supports
 both bulk expression matrices and Seurat objects.
 }
 \examples{
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
+data(geneExp)
 signature_file <- system.file("extdata", "stemsig.tsv", package = "EMTscore")
 compute_Signature_score(geneExp, signature_file, "Stemness_Score")
 }

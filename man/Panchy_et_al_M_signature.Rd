@@ -3,21 +3,24 @@
 \docType{data}
 \name{Panchy_et_al_M_signature}
 \alias{Panchy_et_al_M_signature}
-\title{Panchy_et_al_M_signature}
+\title{Panchy et al. mesenchymal signature}
 \format{
-M gene list from Panchy_et_al
-\describe{
-  M gene
+A character vector of mesenchymal-state gene symbols.
 }
+\source{
+Mesenchymal marker gene list curated from Panchy et al. Gene symbols
+  were extracted from the published EMT signature; no further processing was
+  applied.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
 }
 \usage{
 data(Panchy_et_al_M_signature)
 }
 \description{
-This is an example dataset.
+Mesenchymal (M) marker gene set curated from Panchy et al., provided as an
+example EMT signature.
 }
 \examples{
 data(Panchy_et_al_M_signature)
-
 }
 \keyword{datasets}

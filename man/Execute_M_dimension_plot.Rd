@@ -32,20 +32,20 @@ Scatter plot of two M scores with mean +/- SD per cell type.
 }
 \examples{
 data(cell_annotation_file)
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
+data(geneExp)
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
-nnPCA_Mscore <- Execute_nnPCA(geneExp, gmt_file, dimension=2, score_names=c('M1_score','M2_score'))
+nnPCA_Mscore <- Execute_nnPCA(geneExp, gmt_file,
+  dimension = 2, score_names = c("M1_score", "M2_score"))
 data_for_plot <- data_prepare(cell_annotation_file, nnPCA_Mscore, merge_colname = "name")
 plot2 <- Execute_M_dimension_plot(
-data_for_plot,
-M1_colname = "M1_score",
-M2_colname = "M2_score",
-celltype_colname = "celltype_annotation",
-colors = c("#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
-          "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6")
+  data_for_plot,
+  M1_colname = "M1_score",
+  M2_colname = "M2_score",
+  celltype_colname = "celltype_annotation",
+  colors = c(
+    "#F87189", "#CE9031", "#A48CF5", "#97A430", "#39A7D0", "#E57D5F",
+    "#84C7B9", "#E1AF64", "#C26CCF", "#B0BF43", "#57C3E8", "#F29D9E", "#92AAE6"
+  )
 )
 
 }

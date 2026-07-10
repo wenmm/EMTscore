@@ -10,15 +10,15 @@ read_gmt(fname)
 \item{fname}{Character string. Path to the GMT file.}
 }
 \value{
-A data frame with a single column \code{gene}, containing all unique genes.
+A data frame with a single column \code{gene}, containing all unique
+  genes.
 }
 \description{
-This function reads a GMT (Gene Matrix Transposed) file and extracts all unique genes
-across all gene sets.
+This function reads a GMT (Gene Matrix Transposed) file with
+\code{GSEABase::getGmt()} and extracts all unique genes across all gene sets.
 }
 \examples{
 gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-
 genes <- read_gmt(gmt_file)
 
 }

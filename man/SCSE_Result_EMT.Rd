@@ -7,6 +7,13 @@
 \format{
 A data frame of SCSE-based EMT scores (rows = samples).
 }
+\source{
+Precomputed example output produced by running
+  \code{\link{Execute_SCSE}} on the bundled \code{\link{geneExp}} matrix
+  with the \code{EM_signature.gmt} gene set shipped in
+  \code{system.file("extdata", package = "EMTscore")}.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(SCSE_Result_EMT)
 }

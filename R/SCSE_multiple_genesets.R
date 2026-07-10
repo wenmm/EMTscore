@@ -11,61 +11,58 @@
 #'
 #' @return A data frame containing SCSE scores for each pathway across samples.
 #' @export
-#' @import foreach doParallel GSA stringr
+#' @importFrom GSA GSA.read.gmt
 #'
 #' @examples
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
-#' gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-#' result <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 2)
-
+#' data(geneExp)
+#' gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+#' result <- Execute_SCSE_parallel(geneExp, gmt_file, cores = 1)
 Execute_SCSE_parallel <- function(exprMatrix, gmt_file, cores) {
-  stringsAsFactors <- FALSE
-  
-  registerDoParallel(cores)
-  
+
   #---------------- SCSE function ----------------#
   SingleCellSigExplorer <- function(data, genes) {
     DataRanks <- data[rownames(data) %in% genes, , drop = FALSE]
-    if (nrow(DataRanks) == 0) return(NULL)
-    
+    if (nrow(DataRanks) == 0) {
+      return(NULL)
+    }
+
     CumSum <- data.frame(colSums(DataRanks))
     colnames(CumSum)[1] <- "RawRankSum"
     CumSum$SampleID <- rownames(CumSum)
-    
+
     TotalUMICount <- data.frame(colSums(data))
     colnames(TotalUMICount)[1] <- "TotalUMISum"
     TotalUMICount$SampleID <- rownames(TotalUMICount)
-    
+
     FinalScore <- merge(CumSum, TotalUMICount, by = "SampleID")
     FinalScore$scSigExp <- FinalScore$RawRankSum / FinalScore$TotalUMISum * 100
     FinalScore[, c("SampleID", "scSigExp")]
   }
-  
+
   #---------------- Wrapper to execute SCSE ----------------#
   Execute_SCSE <- function(data, Genesets, k) {
     genes <- unlist(Genesets$genesets[k])
     pathwayName <- Genesets$geneset.names[k]
     SCSE <- SingleCellSigExplorer(data, genes)
-    if (is.null(SCSE)) return(NULL)
-    
+    if (is.null(SCSE)) {
+      return(NULL)
+    }
+
     SCSE_t <- as.data.frame(t(SCSE$scSigExp))
     names(SCSE_t) <- SCSE$SampleID
     SCSE_t$Pathway <- pathwayName
     SCSE_t
   }
-  
+
   #---------------- Read gene sets ----------------#
   Genesets <- GSA.read.gmt(gmt_file)
   GSsize <- length(Genesets$genesets)
-  
+
   #---------------- Parallel SCSE computation ----------------#
-  Combine_SCSE <- foreach(k = seq_len(GSsize), .combine = rbind, .errorhandling = "remove") %dopar% {
+  Combine_SCSE <- bind_genesets_parallel(GSsize, function(k) {
     Execute_SCSE(exprMatrix, Genesets, k)
-  }
+  }, cores)
   rownames(Combine_SCSE) <- Combine_SCSE$Pathway
   Combine_SCSE$Pathway <- NULL
-  return(Combine_SCSE)
+  return(t(Combine_SCSE))
 }

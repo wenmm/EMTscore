@@ -8,7 +8,7 @@ write_gmt(gene_sets, file)
 }
 \arguments{
 \item{gene_sets}{A named list of gene sets. Each element should be a character vector
-containing gene symbols, and each list name will be used as the gene set name.  
+containing gene symbols, and each list name will be used as the gene set name.
 Example: \code{list(Pathway1 = c("TP53", "BRCA1"), Pathway2 = c("EGFR", "MYC"))}}
 
 \item{file}{A character string specifying the output GMT file path (e.g. "output.gmt").}
@@ -17,8 +17,8 @@ Example: \code{list(Pathway1 = c("TP53", "BRCA1"), Pathway2 = c("EGFR", "MYC"))}
 No return value. The function writes a GMT file to the specified path.
 }
 \description{
-Convert multiple gene lists into a single GMT (Gene Matrix Transposed) formatted file.  
-Each element of the input list represents one gene set, where the element name  
+Convert multiple gene lists into a single GMT (Gene Matrix Transposed) formatted file.
+Each element of the input list represents one gene set, where the element name
 is the gene set name and the element value is a vector of gene symbols.
 }
 \examples{

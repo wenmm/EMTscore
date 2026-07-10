@@ -7,6 +7,12 @@
 \format{
 A data frame (rows = cells/samples) of annotations and scores.
 }
+\source{
+Precomputed example object built with \code{\link{data_prepare}} by
+  merging \code{\link{cell_annotation_file}} with nnPCA scores computed from
+  the bundled \code{\link{geneExp}} matrix.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(data_for_plot)
 }

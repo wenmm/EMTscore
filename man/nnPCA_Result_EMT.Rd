@@ -10,6 +10,13 @@ A data frame or matrix of nnPCA-based EMT score.
   EMT score results generated using the nnPCA method.
 }
 }
+\source{
+Precomputed example output produced by running
+  \code{\link{Execute_nnPCA}} on the bundled \code{\link{geneExp}} matrix
+  with the \code{EM_signature.gmt} gene set shipped in
+  \code{system.file("extdata", package = "EMTscore")}.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(nnPCA_Result_EMT)
 }

@@ -47,67 +47,62 @@
 #'
 #' @examples
 #' # single matrix
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
+#' data(geneExp)
 #' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-#' res <- add_EMT_score_Bulk(expr_mat_list = list(s = geneExp), gmt_file,
-#'   emt_name = "EMT", method = "AUCell", dimension = 1)
+#' res <- add_EMT_score_Bulk(
+#'   expr_mat_list = list(s = geneExp), gmt_file,
+#'   emt_name = "EMT", method = "AUCell", dimension = 1
+#' )
 #'
 #' # multiple matrices (named list)
 #' exprs <- list(TCGA = geneExp, GTEX = geneExp)
-#' res_list <- add_EMT_score_Bulk(expr_mat_list = exprs, gmt_file,
-#'   emt_name = "EMT", method = "nnPCA", dimension = 1)
+#' res_list <- add_EMT_score_Bulk(
+#'   expr_mat_list = exprs, gmt_file,
+#'   emt_name = "EMT", method = "nnPCA", dimension = 1
+#' )
 #'
 #' @export
 
-add_EMT_score_Bulk <- function(expr_mat_list, gmt_file = NULL, 
-                               emt_name, 
-                               method = c("nnPCA", "AUCell", "ssGSEA", "SCSE", 
-                                          "GSVA", "JASMINE"), 
+add_EMT_score_Bulk <- function(expr_mat_list, gmt_file = NULL,
+                               emt_name,
+                               method = c(
+                                 "nnPCA", "AUCell", "ssGSEA", "SCSE",
+                                 "GSVA", "JASMINE"
+                               ),
                                dimension) {
   method <- match.arg(method)
-  
+
   if (is.null(gmt_file)) stop("gmt_file must be provided.")
-  Genesets <- read_gmt(gmt_file)
-  emt_genes <- Genesets$gene
-  
+
   # Store the result for each matrix
   results_list <- list()
-  
+
   for (name in names(expr_mat_list)) {
     mat <- expr_mat_list[[name]]
     result_df <- data.frame(row.names = colnames(mat))
-    
+
     if (method == "nnPCA") {
       scores <- Execute_nnPCA(mat, gmt_file, dimension, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
-      
     } else if (method == "AUCell") {
       scores <- Execute_AUCell(mat, gmt_file, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
-      
     } else if (method == "ssGSEA") {
       scores <- Execute_ssGSEA(mat, gmt_file, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
-      
     } else if (method == "GSVA") {
       scores <- Execute_GSVA(mat, gmt_file, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
-      
-    }else if (method == "SCSE") {
+    } else if (method == "SCSE") {
       scores <- Execute_SCSE(mat, gmt_file, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
-      
     } else if (method == "JASMINE") {
       scores <- Execute_JAS(mat, gmt_file, score_names = emt_name)
       result_df[[emt_name]] <- scores[rownames(result_df), emt_name]
     }
-    
+
     results_list[[name]] <- result_df
   }
-  
+
   return(results_list)
 }
-

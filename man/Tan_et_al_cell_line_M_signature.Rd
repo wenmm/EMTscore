@@ -7,6 +7,12 @@
 \format{
 A character vector of mesenchymal signature gene symbols.
 }
+\source{
+Cell-line mesenchymal EMT signature curated from Tan et al. Gene
+  symbols were extracted from the published signature; no further processing
+  was applied.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(Tan_et_al_cell_line_M_signature)
 }

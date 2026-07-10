@@ -7,9 +7,10 @@
 #'
 #' @keywords internal
 #'
-#' @importFrom Seurat AddModuleScore GetAssayData UpdateSeuratObject as.Seurat
+#' @importFrom Seurat AddModuleScore AddMetaData GetAssayData UpdateSeuratObject as.Seurat
 #' @importFrom dplyr filter group_by summarise n
 #' @import mclust
+#' @import Matrix
 #' @importFrom rlang sym
 #' @importFrom magrittr %>%
 #' @importFrom stats cor sd complete.cases cor.test kmeans

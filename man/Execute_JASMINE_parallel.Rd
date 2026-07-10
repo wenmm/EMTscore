@@ -22,10 +22,7 @@ Each pathway score combines normalized rank mean and odds ratio of gene expressi
 Parallel processing is used to speed up computation across gene sets.
 }
 \examples{
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
-gmt_file <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
-result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 2)
+data(geneExp)
+gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
+result <- Execute_JASMINE_parallel(geneExp, gmt_file, cores = 1)
 }

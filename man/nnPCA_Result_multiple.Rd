@@ -7,6 +7,13 @@
 \format{
 A data frame with nnPCA Escore and Mscore columns (rows = samples).
 }
+\source{
+Precomputed example output produced by running \code{\link{Execute_nnPCA}}
+  (with \code{dimension = 2}) on the bundled \code{\link{geneExp}} matrix and
+  the \code{EM_signature.gmt} gene set shipped in
+  \code{system.file("extdata", package = "EMTscore")}.
+  Creation and provenance code: \code{system.file("script", "make-data.R", package = "EMTscore")}.
+}
 \usage{
 data(nnPCA_Result_multiple)
 }

@@ -25,10 +25,7 @@ Execute nnPCA Scoring from GMT File
 Read a GMT file and compute EMT scores for a gene expression matrix.
 }
 \examples{
-url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-destfile <- tempfile(fileext = ".rda")
-download.file(url, destfile, mode = "wb")
-load(destfile)
+data(geneExp)
 gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
-result <- Execute_nnPCA(geneExp, gmt_file,dimension = 1, score_names = "score")
+result <- Execute_nnPCA(geneExp, gmt_file, dimension = 1, score_names = "score")
 }

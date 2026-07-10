@@ -7,22 +7,22 @@
 plot_EMT_from_objects(obj_list, col_name, emt_score_col)
 }
 \arguments{
-\item{obj_list}{A named list of Seurat objects. Each element should be a Seurat object 
+\item{obj_list}{A named list of Seurat objects. Each element should be a Seurat object
 with the EMT score already computed and stored in the metadata.}
 
-\item{col_name}{Character string. Name of the column in \code{meta.data} containing 
+\item{col_name}{Character string. Name of the column in \code{meta.data} containing
 values to plot.}
 
-\item{emt_score_col}{Character string. Name of the column in \code{meta.data} containing 
+\item{emt_score_col}{Character string. Name of the column in \code{meta.data} containing
 EMT scores. Default: \code{"EMT_Score"}.}
 }
 \value{
-A \code{ggplot} object showing smoothed EMT score trajectories along pseudotime 
+A \code{ggplot} object showing smoothed EMT score trajectories along pseudotime
   for each condition.
 }
 \description{
-This function visualizes EMT (epithelial mesenchymal transition) scores 
-across pseudotime for multiple Seurat objects. Each Seurat object is treated 
+This function visualizes EMT (epithelial mesenchymal transition) scores
+across pseudotime for multiple Seurat objects. Each Seurat object is treated
 as a different condition or sample.
 }
 \examples{
@@ -32,8 +32,11 @@ eh <- ExperimentHub()
 A549_TGFB1 <- eh[["EH10293"]]
 gmt_file <- system.file("extdata", "EM_signature.gmt", package = "EMTscore")
 objs <- add_EMT_score(list(A549_TGFB1 = A549_TGFB1), gmt_file,
-  emt_name = "EMT_Score", method = "AUCell")
-p <- plot_EMT_from_objects(objs, col_name = "nCount_RNA",
-  emt_score_col = "EMT_Score")
+  emt_name = "EMT_Score", method = "AUCell"
+)
+p <- plot_EMT_from_objects(objs,
+  col_name = "nCount_RNA",
+  emt_score_col = "EMT_Score"
+)
 }
 }

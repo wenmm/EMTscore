@@ -48,10 +48,12 @@ By default, only novel and non-redundant gene sets are kept
 (overlap < `cutoff`).
 }
 \examples{
-ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt", package = "EMTscore")
-target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt", package = "EMTscore")
+ref_gmt <- system.file("extdata", "TianLab_collected_EMT_signatures.gmt",
+  package = "EMTscore")
+target_gmt <- system.file("extdata", "h.all.v2025.1.Hs.symbols.gmt",
+  package = "EMTscore")
 output_gmt <- tempfile(fileext = ".gmt")
-# Keep only gene sets that share < 30 \% genes with TianLab EMT collection
+# Keep only gene sets that share < 50 \% genes with the TianLab EMT collection
 filter_gmt_by_reference(
   ref_gmt,
   target_gmt,

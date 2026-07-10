@@ -8,24 +8,20 @@
 #' @return Data frame of samples with GSVA scores.
 #'
 #' @export
-#' @import GSA stringr GSVA
-#' 
+#' @importFrom GSVA gsvaParam gsva
+#'
 #' @examples
-#' url <- "https://zenodo.org/records/19487376/files/geneExp.rda"
-#' destfile <- tempfile(fileext = ".rda")
-#' download.file(url, destfile, mode = "wb")
-#' load(destfile)
+#' data(geneExp)
 #' gmt_file <- system.file("extdata", "test.gmt", package = "EMTscore")
 #' result <- Execute_GSVA(geneExp, gmt_file, score_names = "score")
-
-Execute_GSVA <- function(exprMatrix,Genesets,score_names){
-geneslist = unlist(read_gmt(Genesets)$gene)
-gsva_geneSets <- GSEABase::GeneSetCollection(
-  GSEABase::GeneSet(geneslist, setName = score_names)
-)
-gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
-Result = gsva(gsvaPar, verbose=FALSE)     
-Result = data.frame(t(Result))
-colnames(Result) <- score_names
-return(Result)
+Execute_GSVA <- function(exprMatrix, Genesets, score_names) {
+  geneslist <- unlist(read_gmt(Genesets)$gene)
+  gsva_geneSets <- GSEABase::GeneSetCollection(
+    GSEABase::GeneSet(geneslist, setName = score_names)
+  )
+  gsvaPar <- gsvaParam(exprMatrix, geneSets = gsva_geneSets)
+  Result <- gsva(gsvaPar, verbose = FALSE)
+  Result <- data.frame(t(Result))
+  colnames(Result) <- score_names
+  return(Result)
 }

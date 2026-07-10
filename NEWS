@@ -1,3 +1,41 @@
+CHANGES IN VERSION 0.99.5
+-------------------------
+o Further Bioconductor review responses:
+o Replaced the remaining import() directives with selective importFrom(),
+  keeping import() only where whole-package access is required (ggplot2, and
+  mclust / Matrix for S4 method dispatch).
+o Replaced direct Seurat @meta.data slot access with accessors ([[ ]],
+  AddMetaData) in the single-cell scoring functions.
+o Vignette now saves and restores the user's options() and adds a comparison
+  to related Bioconductor gene-set scoring packages in the Introduction.
+o Added inst/script/make-data.R documenting the provenance and creation of
+  every data/ object, referenced from each data man page.
+o Fixed the orientation of Execute_SCSE_parallel() so its output matches the
+  other parallel scorers (samples x gene sets).
+
+CHANGES IN VERSION 0.99.4
+-------------------------
+o Responded to the Bioconductor package review:
+o Rewrote Title and Description without single quotes and wrapped them.
+o Wrapped Authors@R and added the maintainer ORCID and funder (fnd) entries.
+o Added 'BiocType: Software' and replaced the data-experiment biocViews with
+  Software biocViews.
+o Switched parallel execution to BiocParallel and file downloads to
+  BiocFileCache.
+o Read GMT gene sets with GSEABase and removed the redundant custom reader.
+o Vectorised correlate_sample_scores() and removed blanket tryCatch() calls
+  and utils::globalVariables().
+o Reworked the vignette to use BiocStyle, a generated table of contents and an
+  installation section, and to demonstrate SummarizedExperiment /
+  SingleCellExperiment input.
+o Expanded the unit test suite and moved Figure1.png to man/figures.
+
+CHANGES IN VERSION 0.99.1
+-------------------------
+o Development iterations before the Bioconductor review: refined function
+  documentation and examples, corrected gene set file names, and updated the
+  vignette.
+
 CHANGES IN VERSION 0.99.0
 -------------------------
-o submitted to bioconductor
+o Submitted to Bioconductor.

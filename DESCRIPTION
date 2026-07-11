@@ -1,7 +1,7 @@
 Package: EMTscore
 Type: Package
 Title: Calculate EMT Scores Based on Omics Data
-Version: 0.99.8
+Version: 0.99.9
 Date: 2026-07-10
 Authors@R: c(
     person(given = "Haimei", family = "Wen",

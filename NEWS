@@ -1,3 +1,12 @@
+CHANGES IN VERSION 0.99.10
+--------------------------
+o Reworded the correlate_sample_scores() error handler message ("Invalid
+  correlation for ..." instead of "Error in correlation for ...") so it no
+  longer triggers the BiocCheck note about redundant 'stop' and 'warn*' wording
+  in signal conditions.
+o Used <- instead of = for the two remaining top-level assignments in the
+  vignette (colors and emt_names), clearing the lintr assignment_linter output.
+
 CHANGES IN VERSION 0.99.8
 -------------------------
 o Version bump to re-trigger the build after a transient missing-dependency

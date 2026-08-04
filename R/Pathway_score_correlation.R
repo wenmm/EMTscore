@@ -66,7 +66,7 @@ correlate_sample_scores <- function(score_mat1, score_mat2, method = "pearson") 
         test <- tryCatch(
           cor.test(x[valid_idx], y[valid_idx], method = method),
           error = function(e) {
-            message("Error in correlation for ", col1, " vs ", col2, ": ", e$message)
+            message("Invalid correlation for ", col1, " vs ", col2, ": ", e$message)
             return(NULL)
           }
         )
